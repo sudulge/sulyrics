@@ -73,7 +73,7 @@ def checkInput(input, tries):
 
     return True
 
-def NBhit(HRnumber, input, tries):
+def NBhit(HRnumber, input, tries, ctx):
     valid = checkInput(input, tries)
     
     if type(valid)==str:
@@ -97,7 +97,7 @@ def NBhit(HRnumber, input, tries):
     else:
         result = f"{input}: {strike}S {ball}B"
         
-    return result, f"{input}: {strike}S {ball}B\n"
+    return result, f"{input}: {strike}S {ball}B ⠀({ctx.author.display_name})\n"
 
 def NBend():
     global HRnumber, tries
@@ -239,11 +239,11 @@ async def numBaseball(ctx, choice: Option(str, "숫자야구", choices=["시작"
 async def numBaseballInput(ctx, input: Option(str, "숫자 입력")):
     try:
         global tries_list, msg
-        result, log = NBhit(HRnumber, input, tries)
+        result, log = NBhit(HRnumber, input, tries, ctx)
         tries_list += log
         NBembed = discord.Embed(color=0xf5a9a9)
         NBembed.title = result
-        NBembed.description = "========================"
+        NBembed.description = "=========================="
         NBembed.add_field(name="로그", value=tries_list)
         try:
             await msg.delete_original_message()
