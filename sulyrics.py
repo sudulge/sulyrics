@@ -57,6 +57,55 @@ def rank(count, bonus):
 
 mainNumber, bonusNumber = lotto()
 
+def NBstart():
+    HRnumber = list(map(str, random.sample(range(0, 9), 4)))
+    tries = []
+    tries_list = ''
+    return HRnumber, tries, tries_list
+
+def checkInput(input, tries):
+    if len(input) != 4:
+        return "4자리 수를 입력해 주세요"
+    if len(set(input)) != 4:
+        return "중복되지 않게 입력해 주세요"
+    if input in tries:
+        return "이미 시도한 숫자입니다."
+
+    return True
+
+def NBhit(HRnumber, input, tries):
+    valid = checkInput(input, tries)
+    
+    if type(valid)==str:
+        return valid, ''
+    
+    tries.append(input)
+    strike = 0
+    ball = 0
+
+    for index, number in enumerate(input):
+        if number == HRnumber[index]:
+            strike += 1
+        elif number in HRnumber:
+            ball += 1
+
+    if strike == 4:
+        result = f"홈런! {len(tries)}회 만에 맞추셨습니다"
+        NBend()
+    elif strike == 0 and ball == 0:
+        result = "아웃"
+    else:
+        result = f"{input}: {strike}S {ball}B"
+        
+    return result, f"{input}: {strike}S {ball}B\n"
+
+def NBend():
+    global HRnumber, tries
+    del HRnumber, tries
+
+
+
+
 
 @bot.event
 async def on_ready():
@@ -93,7 +142,8 @@ async def sulyricsInfo(ctx):
 @bot.slash_command(name="자기소개", guild_ids=[723892698435551324], description="사용자 정보")
 async def userInfo(ctx):
     date = datetime.utcfromtimestamp(((int(ctx.author.id) >> 22) + 1420070400000) / 1000)
-    embed = discord.Embed(title="", color=0xf5a9a9)
+    user = await bot.fetch_user(ctx.author.id)
+    embed = discord.Embed(title="", color=user.accent_color)
     embed.add_field(name="이름", value=ctx.author.name, inline=True)
     embed.add_field(name="서버닉네임", value=ctx.author.display_name, inline=True)
     embed.add_field(name="가입일", value=str(date.year) + "년" + str(date.month) + "월" + str(date.day) + "일", inline=True)
@@ -153,6 +203,7 @@ async def lunch(ctx, school: Option(str, "학교 이름 입력")):
             embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/769489028357160990.png?v=1")
             await ctx.respond(embed=embed)
 
+
 @bot.slash_command(name="로또", guild_ids=[723892698435551324], description="로또")
 async def lotto(ctx):
     myNumber, count, bonus = automatic(mainNumber, bonusNumber)
@@ -163,6 +214,56 @@ async def lotto(ctx):
     embed.add_field(name="등수", value=f"{ranking}", inline=False)
     embed.set_footer(text="당첨 번호는 매일 바뀝니다")
     await ctx.respond(embed=embed)
+
+
+@bot.slash_command(name="숫자야구", guild_ids=[723892698435551324], description="숫자야구")
+async def numBaseball(ctx, choice: Option(str, "숫자야구", choices=["시작", "도움말"])):
+    if choice == "시작":
+        global HRnumber, tries, tries_list
+        HRnumber, tries, tries_list = NBstart()
+        print(HRnumber)
+        await ctx.respond("`숫자를 초기화했습니다.\n/야 명령어를 통해 숫자를 입력해 주세요.`")
+    elif choice == "도움말":
+        NBHembed = discord.Embed(color=0xf5a9a9)
+        NBHembed.title = "숫자야구"
+        NBHembed.description = "================================="
+        NBHembed.add_field(name="규칙", value=
+        "0~9 사이의 중복되지 않는 네자리 수\n\
+        숫자는 맞지만 위치가 틀렸을 경우 '볼'\n\
+        숫자와 위치가 모두 맞았을 경우 '스트라이크'\n\
+        맞는 숫자가 한 개도 없을 경우 '아웃'\n")
+        await ctx.respond(embed=NBHembed)
+
+
+@bot.slash_command(name="야", guild_ids=[723892698435551324], description="숫자야구")
+async def numBaseballInput(ctx, input: Option(str, "숫자 입력")):
+    try:
+        global tries_list, msg
+        result, log = NBhit(HRnumber, input, tries)
+        tries_list += log
+        NBembed = discord.Embed(color=0xf5a9a9)
+        NBembed.title = result
+        NBembed.description = "========================"
+        NBembed.add_field(name="로그", value=tries_list)
+        try:
+            await msg.delete_original_message()
+        finally:
+            msg = await ctx.respond(embed=NBembed)
+    except NameError as e:
+        if 'msg' in str(e):
+            pass
+        else:
+            await ctx.respond("`/숫자야구 명령어를 통해 숫자를 초기화 해주세요.`")
+
+
+@bot.slash_command(name="help", guild_ids=[723892698435551324], description="수리릭 도움말")
+async def help(ctx):
+    Hembed = discord.Embed(color=0xf5a9a9)
+    Hembed.title = "수리릭"
+    Hembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/731547490347909120/941329421552467998/c39add417a556179.png")
+    Hembed.add_field(name="명령어 리스트", value="`정보` `자기소개` \n `삭제` `고정` \n `급식` `로또` `숫자야구` `오늘의라인`")
+    await ctx.respond(embed=Hembed)
+
 
 #
 # @bot.slash_command(name="", guild_ids=[723892698435551324], description="")
