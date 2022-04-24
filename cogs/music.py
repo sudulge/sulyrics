@@ -29,9 +29,9 @@ class LavalinkVoiceClient(discord.VoiceClient):
         else:
             self.client.lavalink = lavalink.Client(client.user.id)
             self.client.lavalink.add_node(
-                    'localhost',
-                    2333,
-                    'sulyrics',
+                    'lavalink.darrenofficial.com',
+                    80,
+                    'youshallnotpass',
                     'eu',
                     'default-node')
             self.lavalink = self.client.lavalink
@@ -68,7 +68,7 @@ class Music(commands.Cog):
 
         if not hasattr(bot, 'lavalink'):
             bot.lavalink = lavalink.Client(731538324170342461)
-            bot.lavalink.add_node('localhost', 2333, 'sulyrics', 'eu', 'default-node')  # Host, Port, Password, Region, Name
+            bot.lavalink.add_node('lavalink.darrenofficial.com', 80, 'youshallnotpass', 'eu', 'default-node')  # Host, Port, Password, Region, Name
 
         lavalink.add_event_hook(self.track_hook)
 
@@ -91,26 +91,22 @@ class Music(commands.Cog):
         should_connect = ctx.command.name in ('play',)
 
         if not ctx.author.voice or not ctx.author.voice.channel:
-            return await ctx.respond('Join a voicechannel first.')
-            # raise commands.CommandInvokeError('Join a voicechannel first.')
+            raise commands.CommandInvokeError('Join a voicechannel first.')
 
         if not player.is_connected:
             if not should_connect:
-                return await ctx.respond('Not connected.')
-                # raise commands.CommandInvokeError('Not connected.')
+                raise commands.CommandInvokeError('봇이 연결되어 있지 않습니다') # Not connected.
 
             permissions = ctx.author.voice.channel.permissions_for(ctx.me)
 
             if not permissions.connect or not permissions.speak:
-                return await ctx.respond('I need the `CONNECT` and `SPEAK` permissions.')
-                # raise commands.CommandInvokeError('I need the `CONNECT` and `SPEAK` permissions.')
+                raise commands.CommandInvokeError('"연결", "말하기" 권한이 필요합니다') # I need the `CONNECT` and `SPEAK` permissions.
 
             player.store('channel', ctx.channel.id)
             await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
         else:
             if int(player.channel_id) != ctx.author.voice.channel.id:
-                return await ctx.respond('You need to be in my voicechannel.')
-                # raise commands.CommandInvokeError('You need to be in my voicechannel.')
+                raise commands.CommandInvokeError('같은 음성 채널에 있어야합니다') # You need to be in my voicechannel.
 
     async def track_hook(self, event):
         if isinstance(event, lavalink.events.QueueEndEvent):
@@ -119,7 +115,7 @@ class Music(commands.Cog):
             await guild.voice_client.disconnect(force=True)
 
 
-    @slash_command(guild_ids=[896398625163345931], description="play")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="play")
     async def play(self, ctx, search: Option(str, "노래 이름 입력")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         query = search.strip('<>')
@@ -148,11 +144,13 @@ class Music(commands.Cog):
         if results['loadType'] == 'PLAYLIST_LOADED':
             tracks = results['tracks']
 
+            info = tracks[0]['info']
+
             for track in tracks:
                 # Add all of the tracks from the playlist to the queue.
                 player.add(requester=ctx.author.id, track=track)
 
-            embed.title = 'Playlist Enqueued!'
+            embed.title = 'Playlist Enqueued'
             embed.description = f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks'
         else:
             track = results['tracks'][0]
@@ -181,34 +179,79 @@ class Music(commands.Cog):
             await player.play()
 
 
-    @slash_command(guild_ids=[896398625163345931], description="skip")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="skip")
     async def skip(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.is_playing:
-            return await ctx.respond('플레이 중 이지 않습니다.')
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 중인 곡이 없습니다"
+            return await ctx.respond(embed=embed)
 
         await player.skip()
         await ctx.respond("song skipped")
 
-
-    @slash_command(guild_ids=[896398625163345931], description="stop")
+    
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="stop")
     async def stop(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.is_playing:
-            return await ctx.respond('플레이 중 이지 않습니다.')
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 중인 곡이 없습니다"
+            return await ctx.respond(embed=embed)
 
         player.queue.clear()
         await player.stop()
         await ctx.respond("player stopped")
+    
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="seek")
+    async def seek(self, ctx, seconds: Option(int, "정수 입력")):
+        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+
+        if not player.is_playing:
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 중인 곡이 없습니다"
+            return await ctx.respond(embed=embed)
+
+        track_time = player.position + (seconds * 1000)
+        await player.seek(track_time)
+        embed = discord.Embed(color=0xf5a9a9)
+        embed.title = "player seek"
+        if seconds >= 0:
+            embed.description = f"앞으로 {seconds}초 이동"
+        else:
+            embed.description = f"뒤로 {-seconds}초 이동"
+        await ctx.respond(embed=embed)
+    
+
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="repeat")
+    async def repeat(self, ctx):
+        player = self.bot.lavalink.player_manager.get(ctx.guild.id)
+
+        if not player.is_playing:
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 중인 곡이 없습니다"
+            return await ctx.respond(embed=embed)
+
+        # player.repeat = not player.repeat
+        embed = discord.Embed(color=0xf5a9a9)
+        if not player.repeat:
+            player.set_repeat(True)
+            embed.title = "플레이리스트 반복을 켭니다"
+        else:
+            player.set_repeat(False)
+            embed.title = "플레이리스트 반복을 끕니다"
+        await ctx.respond(embed=embed)
 
 
-    @slash_command(guild_ids=[896398625163345931], description="now playing")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="now playing")
     async def now_playing(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.current:
-            return await ctx.respond('재생 중인 것이 없습니다.')
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 중인 곡이 없습니다"
+            return await ctx.respond(embed=embed)
 
         now_minutes = int(int(player.position)//60000)
         now_seconds = int(int(player.position)/1000%60)
@@ -222,11 +265,13 @@ class Music(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(guild_ids=[896398625163345931], description="queue")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="queue")
     async def queue(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.queue:
-            return await ctx.respond('재생목록에 아무것도 없습니다.')
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 목록이 비어있습니다"
+            return await ctx.respond(embed=embed)
 
         queue_list = ''
         for index, track in enumerate(player.queue, start=1):
@@ -237,12 +282,14 @@ class Music(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(guild_ids=[896398625163345931], description="pause")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="pause")
     async def pause(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.is_playing:
-            return await ctx.respond('플레이 중이지 않습니다.')
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생 중인 곡이 없습니다"
+            return await ctx.respond(embed=embed)
 
         if player.paused:
             await player.set_pause(False)
@@ -252,11 +299,13 @@ class Music(commands.Cog):
             await ctx.respond('⏯ | Paused')
 
 
-    @slash_command(guild_ids=[896398625163345931], description="remove")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="remove")
     async def remove(self, ctx, index: int):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.queue:
-            return await ctx.respond('재생목록에 아무것도 없습니다.')
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = "재생목록이 비어있습니다"
+            return await ctx.respond(embed=embed)
 
         if index > len(player.queue) or index < 1:
             return await ctx.respond(f'Index has to be **between** 1 and {len(player.queue)}')
@@ -264,7 +313,7 @@ class Music(commands.Cog):
         await ctx.respond(f'Removed **{removed.title}** from the queue.')
 
 
-    @slash_command(guild_ids=[896398625163345931], description="disconnect")
+    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="disconnect")
     async def disconnect(self, ctx):
         """ Disconnects the player from the voice channel and clears its queue. """
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)

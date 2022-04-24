@@ -12,6 +12,7 @@ class Sulyrics(commands.Bot):
         super().__init__()
         for i in EXTENSIONS:
             self.load_extension(i)
+            print(f"{i}로드 완료")
 
     async def on_ready(self):
         print(f'We have logged in as {bot.user}')
@@ -24,7 +25,7 @@ class Sulyrics(commands.Bot):
         if message.author.bot:
             return
         else:
-            await self.precess_commands(message)
+            await self.process_commands(message)
 
 
 bot = Sulyrics()

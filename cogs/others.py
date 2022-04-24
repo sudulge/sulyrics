@@ -120,9 +120,12 @@ class Others(commands.Cog):
     @slash_command(name="help", guild_ids=[723892698435551324], description="수리릭 도움말")
     async def help(self, ctx):
         Hembed = discord.Embed(color=0xf5a9a9)
-        Hembed.title = "수리릭"
+        Hembed.title = "수리릭 명령어"
         Hembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/731547490347909120/941329421552467998/c39add417a556179.png")
-        Hembed.add_field(name="명령어 리스트", value="`정보` `자기소개` \n `삭제` `고정` \n `급식` `로또` `숫자야구` `오늘의라인` `구글`")
+        Hembed.add_field(name="정보", value="`정보` `자기소개`", inline=False)
+        Hembed.add_field(name="채팅", value="`삭제` `고정`", inline=False)
+        Hembed.add_field(name="음악", value="`play` `skip` `stop` `now_playing` `queue` `seek` `pause` `repeat` `remove`", inline=False)
+        Hembed.add_field(name="기타", value="`급식` `로또` `숫자야구` `야` `오늘의라인` `구글`", inline=False)
         await ctx.respond(embed=Hembed)
 
     #
