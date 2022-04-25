@@ -10,10 +10,18 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 cid = os.environ["SPOTIPY_CLIENT_ID"]
 secret = os.environ["SPOTIPY_CLIENT_SECRET"]
-
 client_credentials_manager = SpotifyClientCredentials(client_id=cid, client_secret=secret)
-
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+try:
+    lavalinkIP = str(os.environ["LAVALINK_IP"])
+except:
+    lavalinkIP = 'localhost'
+
+try:
+    lavalinkPW = os.environ["LAVALINK_PW"]
+except:
+    lavalinkPW = 'password'
 
 url_rx = re.compile(r'https?://(?:www\.)?.+')
 spotify_rx = re.compile(r'open\.spotify')
@@ -29,9 +37,9 @@ class LavalinkVoiceClient(discord.VoiceClient):
         else:
             self.client.lavalink = lavalink.Client(client.user.id)
             self.client.lavalink.add_node(
-                    'lavalink.darrenofficial.com',
-                    80,
-                    'youshallnotpass',
+                    lavalinkIP,
+                    8080,
+                    lavalinkPW,
                     'eu',
                     'default-node')
             self.lavalink = self.client.lavalink
@@ -68,7 +76,7 @@ class Music(commands.Cog):
 
         if not hasattr(bot, 'lavalink'):
             bot.lavalink = lavalink.Client(731538324170342461)
-            bot.lavalink.add_node('lavalink.darrenofficial.com', 80, 'youshallnotpass', 'eu', 'default-node')  # Host, Port, Password, Region, Name
+            bot.lavalink.add_node(lavalinkIP, 8080, lavalinkPW, 'eu', 'default-node')  # Host, Port, Password, Region, Name
 
         lavalink.add_event_hook(self.track_hook)
 
