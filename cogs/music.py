@@ -143,7 +143,6 @@ class Music(commands.Cog):
         #   LOAD_FAILED     - most likely, the video encountered an exception during loading.
         if results['loadType'] == 'PLAYLIST_LOADED':
             tracks = results['tracks']
-
             info = tracks[0]['info']
 
             for track in tracks:

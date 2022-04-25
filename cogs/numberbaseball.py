@@ -3,7 +3,10 @@ from discord.ext import commands
 from discord.commands import slash_command, Option
 import random
 import pickle
+import re
 
+
+num_rx = re.compile('^[0-9]{4}')
 
 def NBstart():
     HRnumber = list(map(str, random.sample(range(0, 9), 4)))
@@ -13,8 +16,8 @@ def NBstart():
 
 
 def checkInput(input, tries):
-    if len(input) != 4:
-        return "4자리 수를 입력해 주세요"
+    if not num_rx.match(input):
+        return "네 자리 정수를 입력해 주세요"
     if len(set(input)) != 4:
         return "중복되지 않게 입력해 주세요"
     if input in tries:
@@ -101,7 +104,7 @@ class NBbaseball(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(name="숫자야구", guild_ids=[723892698435551324], description="숫자야구")
+    @slash_command(name="숫자야구", guild_ids=[723892698435551324, 896398625163345931], description="숫자야구")
     async def numBaseball(self, ctx, choice: Option(str, "숫자야구", choices=["시작", "기록", "도움말"])):
         if choice == "시작":
             global HRnumber, tries, tries_list
@@ -130,11 +133,11 @@ class NBbaseball(commands.Cog):
             await ctx.respond(embed=NBembed)
 
 
-    @slash_command(name="야", guild_ids=[723892698435551324], description="숫자야구")
-    async def numBaseballInput(self, ctx, input: Option(str, "숫자 입력")):
+    @slash_command(name="야", guild_ids=[723892698435551324, 896398625163345931], description="숫자야구")
+    async def numBaseballInput(self, ctx, input: Option(int, "네자리 숫자 입력")):
         try:
             global tries_list, msg
-            result, log = NBhit(HRnumber, input, tries, tries_list, ctx)
+            result, log = NBhit(HRnumber, str(input), tries, tries_list, ctx)
             tries_list += log
             NBembed = discord.Embed(color=0xf5a9a9)
             NBembed.title = result
@@ -144,7 +147,6 @@ class NBbaseball(commands.Cog):
                 await msg.delete_original_message()
             finally:
                 msg = await ctx.respond(embed=NBembed)
-                print(tries_list)
         except NameError as e:
             if 'msg' in str(e): # 처음 시작 하면 msg가 없음
                 pass
