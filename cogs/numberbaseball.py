@@ -62,7 +62,7 @@ def NBsolecheck(tries, tries_list, ctx):  # 마지막으로 입력한 사람이 
 
 
 def NBaddhistory(tries, ctx):
-    with open("data/NBhistory.pickle", "rb") as f: # 깃허브에 올릴때는 sulyrics/ 빼기
+    with open("cogs/data/NBhistory.pickle", "rb") as f: # 깃허브에 올릴때는 sulyrics/ 빼기
         history = pickle.load(f)
 
     for dic in history: # 있던 사람
@@ -72,18 +72,18 @@ def NBaddhistory(tries, ctx):
             else:
                 dic['로그'][len(tries)] = 1
             dic['로그'] = dict(sorted(dic['로그'].items()))
-            with open("data/NBhistory.pickle", "wb") as f:
+            with open("cogs/data/NBhistory.pickle", "wb") as f:
                 pickle.dump(history, f)
             return
 
     history.append({"id": ctx.author.id, "이름": ctx.author.name, "서버닉네임": ctx.author.display_name, "로그": {len(tries): 1}}) # 새로운 사람
-    with open("data/NBhistory.pickle", "wb") as f:
+    with open("cogs/data/NBhistory.pickle", "wb") as f:
         pickle.dump(history, f)
     return
 
 
 def NBshowhistory(ctx):
-    with open("data/NBhistory.pickle", "rb") as f:
+    with open("cogs/data/NBhistory.pickle", "rb") as f:
         history = pickle.load(f)
     
     for dic in history:
