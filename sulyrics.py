@@ -18,7 +18,7 @@ class Sulyrics(commands.Bot):
         print(f'We have logged in as {bot.user}')
         game = discord.Game("/help")
         await bot.change_presence(status = discord.Status.online, activity=game)
-        # await bot.get_channel(731547490347909120).send("이 몸 등 장 !")  # 아잉방 연구실
+        await bot.get_channel(731547490347909120).send("이 몸 등 장 !")    # 아잉방 연구실
         # await bot.get_channel(896418649244573717).send("이 몸 등 장 !")  # 놀이터
     
     async def on_message(self, message):

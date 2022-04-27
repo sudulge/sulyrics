@@ -11,7 +11,7 @@ class Lunch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(name="급식", guild_ids=[723892698435551324], description="급식")
+    @slash_command(name="급식", guild_ids=[723892698435551324, 896398625163345931], description="급식")
     async def lunch(self, ctx, school: Option(str, "학교 이름 입력")):
         today = str(datetime.now(timezone('Asia/Seoul')))[:10].replace('-', '')
         neis_key = os.environ["NEIS_API_KEY"]

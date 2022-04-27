@@ -1,5 +1,7 @@
 import re
 import os
+import math
+import random
 import discord
 import lavalink
 from discord.ext import commands
@@ -25,6 +27,12 @@ except:
 
 url_rx = re.compile(r'https?://(?:www\.)?.+')
 spotify_rx = re.compile(r'open\.spotify')
+
+playlist = {
+    'ISEGYE IDOL : MUSIC': 'https://youtube.com/playlist?list=PLWTycz4el4t4l6uuriz3OhqR2aKy86EEP',
+    'ALL(왁타버스) : MUSIC': 'https://youtube.com/playlist?list=PLWTycz4el4t7ZCxkGYyekoP1iBxmOM4zZ',
+
+}
 
 
 class LavalinkVoiceClient(discord.VoiceClient):
@@ -96,7 +104,7 @@ class Music(commands.Cog):
 
     async def ensure_voice(self, ctx):
         player = self.bot.lavalink.player_manager.create(ctx.guild.id, endpoint=str(ctx.guild.region))
-        should_connect = ctx.command.name in ('play',)
+        should_connect = ctx.command.name in ('play','list')
 
         if not ctx.author.voice or not ctx.author.voice.channel:
             raise commands.CommandInvokeError('Join a voicechannel first.')
@@ -152,18 +160,22 @@ class Music(commands.Cog):
         if results['loadType'] == 'PLAYLIST_LOADED':
             tracks = results['tracks']
             info = tracks[0]['info']
+            random.shuffle(tracks)
 
             for track in tracks:
                 # Add all of the tracks from the playlist to the queue.
                 player.add(requester=ctx.author.id, track=track)
-
+            
+            # list로 했을때 셔플
             embed.title = 'Playlist Enqueued'
             embed.description = f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks'
         else:
             track = results['tracks'][0]
             info = track['info']
 
-            if not player.current:
+            player.add(requester=ctx.author.id, track=track)
+
+            if not player.queue:
                 embed.title = 'Now Playing'
                 minutes = int(info['length']//60000)
                 seconds = int(info['length']/1000%60)
@@ -174,8 +186,8 @@ class Music(commands.Cog):
 
             # You can attach additional information to audiotracks through kwargs, however this involves
             # constructing the AudioTrack class yourself.
-            track = lavalink.models.AudioTrack(track, ctx.author.id)
-            player.add(requester=ctx.author.id, track=track)
+
+            # track = lavalink.models.AudioTrack(track, ctx.author.id)
 
         embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{info["identifier"]}/0.jpg')
         await ctx.respond(embed=embed)
@@ -184,6 +196,26 @@ class Music(commands.Cog):
         # the current track.py.
         if not player.is_playing:
             await player.play()
+        
+
+    @slash_command(name="list", guild_ids=[723892698435551324, 896398625163345931], description="플레이리스트")
+    async def playlist(self, ctx):
+        select = discord.ui.Select(placeholder='플레이 리스트 선택', options=[
+            discord.SelectOption(label='ISEGYE IDOL : MUSIC'),
+            discord.SelectOption(label='ALL(왁타버스) : MUSIC'),
+
+        ])
+
+        async def callback(interaction):
+            await self.play(ctx, playlist[select.values[0]])
+            await interaction.response.edit_message(delete_after=0)
+
+        select.callback = callback
+   
+
+        view=discord.ui.View()
+        view.add_item(select)
+        await ctx.respond('```플레이리스트는 자동으로 셔플됩니다.\n원하는 플레이리스트가 있으면 연구실에 남겨주세요```', view=view)
 
 
     @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="skip")
@@ -267,25 +299,33 @@ class Music(commands.Cog):
 
         embed = discord.Embed(color=0xf5a9a9)
         embed.title = 'Now Playing'
-        embed.description = f'[{player.current.title}]({player.current.uri})\n`[{now_minutes:02d}:{now_seconds:02d}/{minutes:02d}:{seconds:02d}`\n\n Requested by: <@{ctx.author.id}>'
-        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{player.current.identifier}/maxresdefault.jpg')
+        embed.description = f'[{player.current.title}]({player.current.uri})\n`[{now_minutes:02d}:{now_seconds:02d}/{minutes:02d}:{seconds:02d}`\n\n Requested by: <@{player.current.requester}>'
+        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{player.current.identifier}/0.jpg')
         await ctx.respond(embed=embed)
 
 
     @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="queue")
-    async def queue(self, ctx):
+    async def queue(self, ctx, page: int = 1):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.queue:
             embed = discord.Embed(color=0xf5a9a9)
             embed.title = "재생 목록이 비어있습니다"
             return await ctx.respond(embed=embed)
 
+        tracks_per_page = 10
+        pages = math.ceil(len(player.queue) / tracks_per_page) # queue 올림해서 페이지 수 계산
+        if page > pages: # 최대 페이지 보다 더 큰 수 입력시 마지막 페이지 보여주기
+            page = pages
+        start = (page - 1) * tracks_per_page
+        end = start + tracks_per_page
         queue_list = ''
-        for index, track in enumerate(player.queue, start=1):
+
+        for index, track in enumerate(player.queue[start:end], start=start+1):
             queue_list += f'**{index}**. [{track.title}]({track.uri})\n'
         embed = discord.Embed(color=0xf5a9a9)
         embed.title = 'Music Queue'
         embed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+        embed.set_footer(text=f"{page}/{pages} page")
         await ctx.respond(embed=embed)
 
 
@@ -315,9 +355,11 @@ class Music(commands.Cog):
             return await ctx.respond(embed=embed)
 
         if index > len(player.queue) or index < 1:
-            return await ctx.respond(f'Index has to be **between** 1 and {len(player.queue)}')
-        removed = player.queue.pop(index - 1)  # Account for 0-index.
-        await ctx.respond(f'Removed **{removed.title}** from the queue.')
+            return await ctx.respond(f'1 부터 {len(player.queue)} 사이의 정수를 입력해주세요')
+        removed = player.queue.pop(index - 1)
+        await ctx.respond(f'**{index}.{removed.title}** 가 제거되었습니다')
+
+
 
 
     @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="disconnect")
