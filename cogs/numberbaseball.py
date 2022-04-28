@@ -6,7 +6,7 @@ import pickle
 import re
 
 
-num_rx = re.compile('^[0-9]{4}')
+num_rx = re.compile('^[0-9]{4}$')
 
 def NBstart():
     HRnumber = list(map(str, random.sample(range(0, 9), 4)))
@@ -16,6 +16,7 @@ def NBstart():
 
 
 def checkInput(input, tries):
+    print(input, type(input))
     if not num_rx.match(input):
         return "네 자리 정수를 입력해 주세요"
     if len(set(input)) != 4:
@@ -27,6 +28,8 @@ def checkInput(input, tries):
 
 
 def NBhit(HRnumber, input, tries, tries_list, ctx):
+    while len(input) < 4:
+        input = '0'+input 
     valid = checkInput(input, tries)
     
     if type(valid)==str:
