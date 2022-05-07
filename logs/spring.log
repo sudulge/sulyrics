@@ -62,3 +62,37 @@
 2022-04-28 16:14:08.078  INFO 3076 --- [XNIO-1 I/O-8] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:3439 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
 2022-04-28 16:14:42.538  INFO 3076 --- [pool-5-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
 2022-04-28 16:15:08.088  INFO 3076 --- [pool-6-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:29:55.891  INFO 3076 --- [XNIO-1 task-6] l.server.io.HandshakeInterceptorImpl     : Incoming connection from /127.0.0.1:2549
+2022-04-28 17:29:55.895  INFO 3076 --- [XNIO-1 task-6] lavalink.server.io.SocketServer          : Connection successfully established from Lavalink.py
+2022-04-28 17:29:55.896  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : {"op": "configureResuming", "key": "default-node", "timeout": 60}
+2022-04-28 17:31:17.473  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:2549 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
+2022-04-28 17:31:21.710  INFO 3076 --- [XNIO-1 task-7] l.server.io.HandshakeInterceptorImpl     : Incoming connection from /127.0.0.1:9061
+2022-04-28 17:31:21.713  INFO 3076 --- [XNIO-1 task-7] lavalink.server.io.SocketServer          : Connection successfully established from Lavalink.py
+2022-04-28 17:31:21.714  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : {"op": "configureResuming", "key": "default-node", "timeout": 60}
+2022-04-28 17:32:05.499  WARN 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : Shutdown resumable session with key default-node because it has the same key as a newly disconnected resumable session.
+2022-04-28 17:32:05.499  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:32:05.500  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:9061 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
+2022-04-28 17:32:10.807  INFO 3076 --- [XNIO-1 task-8] l.server.io.HandshakeInterceptorImpl     : Incoming connection from /127.0.0.1:6467
+2022-04-28 17:32:10.811  INFO 3076 --- [XNIO-1 task-8] lavalink.server.io.SocketServer          : Connection successfully established from Lavalink.py
+2022-04-28 17:32:10.845  INFO 3076 --- [XNIO-1 I/O-4] lavalink.server.io.SocketServer          : {"op": "configureResuming", "key": "default-node", "timeout": 60}
+2022-04-28 17:32:17.477  INFO 3076 --- [pool-7-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:33:05.514  INFO 3076 --- [pool-8-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:33:06.444  INFO 3076 --- [XNIO-1 I/O-4] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:6467 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
+2022-04-28 17:33:13.569  INFO 3076 --- [XNIO-1 task-9] l.server.io.HandshakeInterceptorImpl     : Incoming connection from /127.0.0.1:7393
+2022-04-28 17:33:13.572  INFO 3076 --- [XNIO-1 task-9] lavalink.server.io.SocketServer          : Connection successfully established from Lavalink.py
+2022-04-28 17:33:13.573  INFO 3076 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : {"op": "configureResuming", "key": "default-node", "timeout": 60}
+2022-04-28 17:34:06.450  INFO 3076 --- [pool-9-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:43:30.422  INFO 3076 --- [XNIO-1 I/O-2] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:7393 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
+2022-04-28 17:43:34.786  INFO 3076 --- [XNIO-1 task-10] l.server.io.HandshakeInterceptorImpl     : Incoming connection from /127.0.0.1:5854
+2022-04-28 17:43:34.789  INFO 3076 --- [XNIO-1 task-10] lavalink.server.io.SocketServer          : Connection successfully established from Lavalink.py
+2022-04-28 17:43:34.790  INFO 3076 --- [XNIO-1 I/O-7] lavalink.server.io.SocketServer          : {"op": "configureResuming", "key": "default-node", "timeout": 60}
+2022-04-28 17:44:24.824  WARN 3076 --- [XNIO-1 I/O-7] lavalink.server.io.SocketServer          : Shutdown resumable session with key default-node because it has the same key as a newly disconnected resumable session.
+2022-04-28 17:44:24.824  INFO 3076 --- [XNIO-1 I/O-7] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:44:24.824  INFO 3076 --- [XNIO-1 I/O-7] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:5854 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
+2022-04-28 17:44:30.428  INFO 3076 --- [pool-10-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:44:31.330  INFO 3076 --- [XNIO-1 task-11] l.server.io.HandshakeInterceptorImpl     : Incoming connection from /127.0.0.1:14541
+2022-04-28 17:44:31.334  INFO 3076 --- [XNIO-1 task-11] lavalink.server.io.SocketServer          : Connection successfully established from Lavalink.py
+2022-04-28 17:44:31.335  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : {"op": "configureResuming", "key": "default-node", "timeout": 60}
+2022-04-28 17:45:19.562  INFO 3076 --- [XNIO-1 I/O-6] lavalink.server.io.SocketServer          : Connection closed from /127.0.0.1:14541 with status CloseStatus[code=1006, reason=] -- Session can be resumed within the next 60 seconds with key default-node
+2022-04-28 17:45:24.827  INFO 3076 --- [pool-11-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
+2022-04-28 17:46:19.577  INFO 3076 --- [pool-12-thread-1] lavalink.server.io.SocketContext         : Shutting down 0 playing players.
