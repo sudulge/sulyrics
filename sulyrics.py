@@ -2,7 +2,7 @@
 
 import discord
 from discord.ext import commands
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time
 import asyncio
 import random
 import os
@@ -18,6 +18,7 @@ embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/7315474903479091
 embed.title = today_saying[0]
 embed.description = today_saying[1]
 embed.set_footer(text=f'{today_saying[2]} | {today_saying[3]}')
+morning = time(7, 0, 0)
 
 class Sulyrics(commands.Bot):
     def __init__(self):
@@ -42,8 +43,11 @@ class Sulyrics(commands.Bot):
 
     async def schedule_daily_message(self):
         now = datetime.now(tz=timezone(timedelta(hours=9)))
-        then = now.replace(hour=7, minute=00)
-        wait_time = (then-now).total_seconds()
+        if now.time() > morning:
+            target_time = datetime.combine(now.date() + timedelta(days=1), morning)
+        else:
+            target_time = datetime.combine(now.date(), morning)
+        wait_time = (target_time - now).total_seconds()
         await asyncio.sleep(wait_time)
         channel = bot.get_channel(723894009856131132)
         await channel.send("좋은 아침 !", embed=embed)
