@@ -42,7 +42,7 @@ class Sulyrics(commands.Bot):
             await self.process_commands(message)
 
     async def schedule_daily_message(self):
-        now = datetime.now(tz=timezone(timedelta(hours=9)))
+        now = datetime.now(tz=timezone(timedelta(hours=9))).replace(tzinfo=None)
         if now.time() > morning:
             target_time = datetime.combine(now.date() + timedelta(days=1), morning)
         else:
