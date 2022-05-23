@@ -226,7 +226,27 @@ sayinglist = [
 [' 내가 있는 곳이 낙원이라. ', 'Paradise is where I am.', '볼테르', 'Voltaire'],
 [' 순교는 능력없이 유명해질 수 있는 유일한 방법이다. ', 'Martyrdom... is the only way in which a man can become famous without ability.', '조지 버나드 쇼', 'George Bernard Shaw'],
 [' 천재성이란 그것의 소유자들을 온갖 곤경에 처하게 만드는 최상의 능력이라고 묘사할 수 있을 것이다. ', 'Genius might be described as a supreme capacity for getting its possessors into trouble of all kinds.', '사무엘 버틀러', 'Samuel Butler'],
-[' 재능이 있거든 가능한 모든 방법으로 사용하라. 쌓아두지 마라. 구두쇠처럼 아껴 쓰지 마라. 파산하려는 백만장자처럼 아낌없이 써라. ', "If you have a talent, use it in every which way possible. Don't hoard it. Don't dole it out like a miser. Spend it lavishly like a millionaire intent on going broke.", '브렌단 프랜시스', 'Brendan Francis']
+[' 재능이 있거든 가능한 모든 방법으로 사용하라. 쌓아두지 마라. 구두쇠처럼 아껴 쓰지 마라. 파산하려는 백만장자처럼 아낌없이 써라. ', "If you have a talent, use it in every which way possible. Don't hoard it. Don't dole it out like a miser. Spend it lavishly like a millionaire intent on going broke.", '브렌단 프랜시스', 'Brendan Francis'],
+[' 지금 공부 안 하면 더울 때 더운 데서 일하고 추울 때 추운 데서 일한다. ', "If you don't study now, you work in hot places when it's hot and work in cold places when it's cold.", '박명수', 'Park Myung Soo'],
+[' 시작은 반이 아니라 시작일 뿐이다. ', "The beginning is not half, it is just the beginning.", '박명수', 'Park Myung Soo'],
+[' 늦었다고 생각할때가 진짜 늦은거다. ', "It's really late when you think it's late.", '박명수', 'Park Myung Soo'],
+[' "내 너 그럴 줄 알았다", 알았으면 제발 미리 말을 해줘라 ', '"I knew you would do that". If you knew, please tell me in advance', '박명수', 'Park Myung Soo'],
+[' 어려운 길은 길이 아니다. ', "The hard way is not the way.", '박명수', 'Park Myung Soo'],
+[' 새벽에 먹는 맥주와 치킨은 0칼로리. ', "Beer and chicken at dawn are zero calories.", '박명수', 'Park Myung Soo'],
+[' 내일도 할 수 있는 일을 굳이 오늘 할 필요 없다. ', "You don't have to do what you can do tomorrow today.", '박명수', 'Park Myung Soo'],
+[' 가는 말이 고우면 얕본다. ', "When a word is sweet, it looks down on you", '박명수', 'Park Myung Soo'],
+[' 즐길 수 없으면 피하라. ', "If you can't enjoy it, avoid it.", '박명수', 'Park Myung Soo'],
+[' 고생 끝에 골병 난다. ', "You will get sick after hard work.", '박명수', 'Park Myung Soo'],
+[' 나까지 나설 필요 없다. ', "There's no need for me to step up.", '박명수', 'Park Myung Soo'],
+[' 참을인 세번이면 호구. ', "If you endure it three times, you're a pushover.", '박명수', 'Park Myung Soo'],
+[' 포기하면 편하다. ', "It's comfortable to give up.", '박명수', 'Park Myung Soo'],
+[' 안되면 말고. ', "If it doesn't work, never mind.", '박명수', 'Park Myung Soo'],
+[' 일찍 일어나는 새가 피곤하다. ', "The early bird is tired.", '박명수', 'Park Myung Soo'],
+[' 일찍 일어나는 벌레는 잡아 먹힌다. ', "Early bird bugs are eaten.", '박명수', 'Park Myung Soo'],
+[' 성공은 1% 재능과 99% 빽. ', "Success is 1% talent and 99% well-connection.", '박명수', 'Park Myung Soo'],
+[' 하나를 보고 열을 알면 무당. ', "If you see one and know ten, you're a shaman.", '박명수', 'Park Myung Soo'],
+[' 원수는 회사에서 만난다. ', "The enemy meets at work.", '박명수', 'Park Myung Soo'],
+[' 티끌 모아 티끌 ', "A lot of dust. A lot of dust", '박명수', 'Park Myung Soo'],
 ]
 
 #출처 : 네이버 명언 
