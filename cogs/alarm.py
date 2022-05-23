@@ -1,7 +1,8 @@
+from unicodedata import name
 import discord
 from discord.ext import commands
 from discord.commands import slash_command, Option
-from discord.ui import Select, Button, View
+from discord.ui import Select, Button, Modal, View
 from datetime import datetime, timedelta, timezone, time
 import asyncio
 
@@ -23,7 +24,6 @@ async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
     wait_time = (target_time - now).total_seconds()
     print(target_time, wait_time)
     await asyncio.sleep(wait_time)
-
 
 
 
@@ -71,31 +71,51 @@ class Alarm(commands.Cog):
             discord.SelectOption(label = 55),
         ])
 
-        button = Button(label = "확인", style=discord.ButtonStyle.success)
+        name_button = Button(label = "이름 변경", style=discord.ButtonStyle.primary)
+        ok_button = Button(label = "확인", style=discord.ButtonStyle.success)
+
+        name_input_modal = Modal(title="알람 이름 변경")
+        name_input_modal.add_item(discord.ui.InputText(label="이름", placeholder="알람", value = "알람"))
+
+
+        async def name_button_callback(interaction):
+            await interaction.response.send_modal(name_input_modal)
         
-        async def button_callback(interaction):
+        async def ok_button_callback(interaction):
             if ampm.values and hour.values and minute.values:
                 embed = discord.Embed(color=0xf5a9a9)
-                embed.title = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 알람 설정"
+                embed.title = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
                 embed.description = f"{ctx.author.display_name}"
-                embed.set_footer(text="설정된 시각 이전에 봇이 껏다 켜질 경우 알람이 초기화 됩니다.\n너무 긴 시간은 설정하지 않는게 좋습니다.")
+                embed.set_footer(text="설정된 시각 이전에 봇이 껐다 켜질 경우 알람이 초기화 됩니다.\n너무 긴 시간은 설정하지 않는게 좋습니다.")
                 await interaction.response.edit_message(view=None, embed=embed)
+
                 await set_alarm(str(ampm.values[0]), int(hour.values[0]), int(minute.values[0]))
+
                 user = await self.bot.fetch_user(ctx.author.id)
-                await user.send(f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 입니다!")
+                embed = discord.Embed(color=0xf5a9a9)
+                embed.title = name_input_modal.children[0].value
+                embed.description = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 입니다!"
+                await user.send(embed = embed)
 
             else:
                 await interaction.response.send_message("항목을 모두 채워주세요")
         
-        button.callback = button_callback
+        async def name_input_modal_callback(interaction):
+            # await interaction.response.edit_message(content=name_input_modal.children[0].value)
+            await interaction.response.send_message(f'알림 이름 변경됨: {name_input_modal.children[0].value}', delete_after=2)
+        
+        name_button.callback = name_button_callback
+        ok_button.callback = ok_button_callback
+        name_input_modal.callback = name_input_modal_callback
 
         view = View()
         view.add_item(ampm)
         view.add_item(hour)
         view.add_item(minute)
-        view.add_item(button)
+        view.add_item(name_button)
+        view.add_item(ok_button)
 
-        await ctx.respond("알람 `오전 12시 = 새벽 / 오후 12시 = 낮`", view=view)
+        await ctx.respond(view=view)
 
 
 def setup(bot):

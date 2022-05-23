@@ -125,7 +125,7 @@ class Others(commands.Cog):
         Hembed.add_field(name="정보", value="`정보` `자기소개`", inline=False)
         Hembed.add_field(name="채팅", value="`삭제` `고정`", inline=False)
         Hembed.add_field(name="음악", value="`play` `list` `skip` `stop` `now_playing` `queue` `seek` `pause` `repeat` `remove`", inline=False)
-        Hembed.add_field(name="기타", value="`급식` `로또` `숫자야구` `야` `오늘의라인` `구글`", inline=False)
+        Hembed.add_field(name="기타", value="`알람` `급식` `로또` `숫자야구` `야` `오늘의라인` `구글`", inline=False)
         await ctx.respond(embed=Hembed)
 
     #
