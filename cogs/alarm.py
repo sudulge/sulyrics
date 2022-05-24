@@ -1,10 +1,15 @@
-from unicodedata import name
 import discord
 from discord.ext import commands
 from discord.commands import slash_command, Option
 from discord.ui import Select, Button, Modal, View
 from datetime import datetime, timedelta, timezone, time
 import asyncio
+import random
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # 디렉토리 추가
+from config import alarm_text
 
 
 async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
@@ -84,7 +89,7 @@ class Alarm(commands.Cog):
         async def ok_button_callback(interaction):
             if ampm.values and hour.values and minute.values:
                 embed = discord.Embed(color=0xf5a9a9)
-                embed.title = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
+                embed.title = f"⏰ {ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
                 embed.description = f"{ctx.author.display_name}"
                 embed.set_footer(text="설정된 시각 이전에 봇이 껐다 켜질 경우 알람이 초기화 됩니다.\n너무 긴 시간은 설정하지 않는게 좋습니다.")
                 await interaction.response.edit_message(view=None, embed=embed)
@@ -93,12 +98,12 @@ class Alarm(commands.Cog):
 
                 user = await self.bot.fetch_user(ctx.author.id)
                 embed = discord.Embed(color=0xf5a9a9)
-                embed.title = name_input_modal.children[0].value
-                embed.description = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 입니다!"
+                embed.title =f"⏰ {name_input_modal.children[0].value}" 
+                embed.description = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 입니다! {random.choice(alarm_text)}"
                 await user.send(embed = embed)
 
             else:
-                await interaction.response.send_message("항목을 모두 채워주세요")
+                await interaction.response.send_message("항목을 모두 채워주세요", delete_after=2)
         
         async def name_input_modal_callback(interaction):
             # await interaction.response.edit_message(content=name_input_modal.children[0].value)

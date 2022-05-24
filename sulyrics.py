@@ -6,12 +6,16 @@ from datetime import datetime, timedelta, timezone, time
 import asyncio
 import random
 import os
+import re
 
 from config import EXTENSIONS
 from saying import sayinglist
 
-today_saying = random.choice(sayinglist)
+intents = discord.Intents.all()
 
+imoji_rx =  re.compile('^<a?:.+?:\d+>$')
+
+today_saying = random.choice(sayinglist)
 embed = discord.Embed(color=0x87cefa)
 embed.set_author(name='오늘의 명언', icon_url='https://cdn.discordapp.com/attachments/731547490347909120/972639147170873344/unknown.png')
 embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/731547490347909120/972639446744842281/unknown.png')
@@ -22,7 +26,7 @@ morning = time(7, 0, 0)
 
 class Sulyrics(commands.Bot):
     def __init__(self):
-        super().__init__()
+        super().__init__(intents=intents)
         for i in EXTENSIONS:
             self.load_extension(i)
             print(f"{i}로드 완료")
@@ -38,6 +42,13 @@ class Sulyrics(commands.Bot):
     async def on_message(self, message):
         if message.author.bot:
             return
+        elif message.channel.id == 954249440552697907 and imoji_rx.match(message.content):
+            await message.delete()
+            user = await self.fetch_user(message.author.id)
+            embed = discord.Embed(color=user.accent_color)
+            embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar)
+            embed.set_image(url=f'https://cdn.discordapp.com/emojis/{message.content.split(":")[2].split(">")[0]}') 
+            await message.channel.send(embed=embed)
         else:
             await self.process_commands(message)
 
