@@ -9,7 +9,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # 디렉토리 추가
-from config import alarm_text
+from config import alarm_text, guild_ids
 
 
 async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
@@ -38,7 +38,7 @@ class Alarm(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @slash_command(name="알람", guild_ids=[723892698435551324, 896398625163345931], description="알람을 설정합니다.")
+    @slash_command(name="알람", guild_ids=guild_ids, description="알람을 설정합니다.")
     async def alarm(self, ctx):
 
         ampm = Select(placeholder = "오전/오후", options=[
@@ -91,7 +91,7 @@ class Alarm(commands.Cog):
                 embed = discord.Embed(color=0xf5a9a9)
                 embed.title = f"⏰ {ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
                 embed.description = f"{ctx.author.display_name}"
-                embed.set_footer(text="설정된 시각 이전에 봇이 껐다 켜질 경우 알람이 초기화 됩니다.\n너무 긴 시간은 설정하지 않는게 좋습니다.")
+                embed.set_footer(text="알람이 설정되었습니다.\n 설정된 시각에 dm이 발송됩니다.")
                 await interaction.response.edit_message(view=None, embed=embed)
 
                 await set_alarm(str(ampm.values[0]), int(hour.values[0]), int(minute.values[0]))

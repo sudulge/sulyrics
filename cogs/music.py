@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import math
 import random
 import discord
@@ -9,21 +10,14 @@ from discord.commands import slash_command, Option
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from config import guild_ids
 
 cid = os.environ["SPOTIPY_CLIENT_ID"]
 secret = os.environ["SPOTIPY_CLIENT_SECRET"]
 client_credentials_manager = SpotifyClientCredentials(client_id=cid, client_secret=secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-try:
-    lavalinkIP = str(os.environ["LAVALINK_IP"])
-except:
-    lavalinkIP = 'localhost'
-
-try:
-    lavalinkPW = os.environ["LAVALINK_PW"]
-except:
-    lavalinkPW = 'password'
 
 url_rx = re.compile(r'https?://(?:www\.)?.+')
 spotify_rx = re.compile(r'open\.spotify')
@@ -45,9 +39,9 @@ class LavalinkVoiceClient(discord.VoiceClient):
         else:
             self.client.lavalink = lavalink.Client(client.user.id)
             self.client.lavalink.add_node(
-                    lavalinkIP,
-                    8080,
-                    lavalinkPW,
+                    'localhost',
+                    2333,
+                    'password',
                     'eu',
                     'default-node')
             self.lavalink = self.client.lavalink
@@ -84,7 +78,7 @@ class Music(commands.Cog):
 
         if not hasattr(bot, 'lavalink'):
             bot.lavalink = lavalink.Client(731538324170342461)
-            bot.lavalink.add_node(lavalinkIP, 8080, lavalinkPW, 'eu', 'default-node')  # Host, Port, Password, Region, Name
+            bot.lavalink.add_node('localhost', 2333, 'password', 'eu', 'default-node')  # Host, Port, Password, Region, Name
 
         lavalink.add_event_hook(self.track_hook)
 
@@ -131,7 +125,7 @@ class Music(commands.Cog):
             await guild.voice_client.disconnect(force=True)
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="play")
+    @slash_command(guild_ids=guild_ids, description="play")
     async def play(self, ctx, search: Option(str, "노래 이름 입력")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         query = search.strip('<>')
@@ -198,7 +192,7 @@ class Music(commands.Cog):
             await player.play()
         
 
-    @slash_command(name="list", guild_ids=[723892698435551324, 896398625163345931], description="플레이리스트")
+    @slash_command(name="list", guild_ids=guild_ids, description="플레이리스트")
     async def playlist(self, ctx):
         select = discord.ui.Select(placeholder='플레이 리스트 선택', options=[
             discord.SelectOption(label='ISEGYE IDOL : MUSIC'),
@@ -218,7 +212,7 @@ class Music(commands.Cog):
         await ctx.respond('```플레이리스트는 자동으로 셔플됩니다.\n원하는 플레이리스트가 있으면 연구실에 남겨주세요```', view=view)
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="skip")
+    @slash_command(guild_ids=guild_ids, description="skip")
     async def skip(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
@@ -231,7 +225,7 @@ class Music(commands.Cog):
         await ctx.respond("song skipped")
 
     
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="stop")
+    @slash_command(guild_ids=guild_ids, description="stop")
     async def stop(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
@@ -244,7 +238,7 @@ class Music(commands.Cog):
         await player.stop()
         await ctx.respond("player stopped")
     
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="seek")
+    @slash_command(guild_ids=guild_ids, description="seek")
     async def seek(self, ctx, seconds: Option(int, "정수 입력")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
@@ -264,7 +258,7 @@ class Music(commands.Cog):
         await ctx.respond(embed=embed)
     
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="repeat")
+    @slash_command(guild_ids=guild_ids, description="repeat")
     async def repeat(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
@@ -284,7 +278,7 @@ class Music(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="now playing")
+    @slash_command(guild_ids=guild_ids, description="now playing")
     async def now_playing(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.current:
@@ -304,7 +298,7 @@ class Music(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="queue")
+    @slash_command(guild_ids=guild_ids, description="queue")
     async def queue(self, ctx, page: int = 1):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.queue:
@@ -329,7 +323,7 @@ class Music(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="pause")
+    @slash_command(guild_ids=guild_ids, description="pause")
     async def pause(self, ctx):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
@@ -346,7 +340,7 @@ class Music(commands.Cog):
             await ctx.respond('⏯ | Paused')
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="remove")
+    @slash_command(guild_ids=guild_ids, description="remove")
     async def remove(self, ctx, index: int):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.queue:
@@ -362,7 +356,7 @@ class Music(commands.Cog):
 
 
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="disconnect")
+    @slash_command(guild_ids=guild_ids, description="disconnect")
     async def disconnect(self, ctx):
         """ Disconnects the player from the voice channel and clears its queue. """
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)

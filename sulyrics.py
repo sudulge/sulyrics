@@ -53,15 +53,18 @@ class Sulyrics(commands.Bot):
             await self.process_commands(message)
 
     async def schedule_daily_message(self):
-        now = datetime.now(tz=timezone(timedelta(hours=9))).replace(tzinfo=None)
-        if now.time() > morning:
-            target_time = datetime.combine(now.date() + timedelta(days=1), morning)
-        else:
-            target_time = datetime.combine(now.date(), morning)
-        wait_time = (target_time - now).total_seconds()
-        await asyncio.sleep(wait_time)
-        channel = bot.get_channel(723894009856131132)
-        await channel.send("좋은 아침 !", embed=embed)
+        while True: 
+            now = datetime.now()
+            if now.time() > morning:
+                target_time = datetime.combine(now.date() + timedelta(days=1), morning)
+            else:
+                target_time = datetime.combine(now.date(), morning)
+            wait_time = (target_time - now).total_seconds()
+            await asyncio.sleep(wait_time)
+            channel = bot.get_channel(723894009856131132)
+            await channel.send("좋은 아침 !", embed=embed)
+            channel = bot.get_channel(954249440552697907)
+            await channel.send("굿뭘닌 !", embed=embed)
 
 
 bot = Sulyrics()

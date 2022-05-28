@@ -3,6 +3,11 @@ from discord.ext import commands
 from discord.commands import slash_command, Option
 from datetime import datetime
 import random
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from config import guild_ids
 
 
 def lotto():
@@ -52,13 +57,13 @@ class Others(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(guild_ids=[723892698435551324, 896398625163345931], description="check bot's response latency")
+    @slash_command(guild_ids=guild_ids, description="check bot's response latency")
     async def ping(self, ctx):
         embed = discord.Embed(title="Pong!", description=f"Delay: {self.bot.latency} seconds", color=0xf5a9a9)
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="정보", guild_ids=[723892698435551324, 896398625163345931], description="수리릭 정보")
+    @slash_command(name="정보", guild_ids=guild_ids, description="수리릭 정보")
     async def sulyricsInfo(self, ctx):
         embed = discord.Embed(title="Sulyrics", color=0xf5a9a9)
         embed.add_field(name="이름", value="수리릭", inline=True)
@@ -69,7 +74,7 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="자기소개", guild_ids=[723892698435551324, 896398625163345931], description="사용자 정보")
+    @slash_command(name="자기소개", guild_ids=guild_ids, description="사용자 정보")
     async def userInfo(self, ctx):
         date = datetime.utcfromtimestamp(((int(ctx.author.id) >> 22) + 1420070400000) / 1000)
         user = await self.bot.fetch_user(ctx.author.id)
@@ -82,29 +87,29 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="삭제", guild_ids=[723892698435551324, 896398625163345931], description="메시지 삭제")
+    @slash_command(name="삭제", guild_ids=guild_ids, description="메시지 삭제")
     async def deleteMessage(self, ctx, limit: Option(int, "지울 개수 입력")):
         await ctx.channel.purge(limit=limit, check=lambda msg: not msg.pinned)
 
 
-    @slash_command(name="고정", guild_ids=[723892698435551324, 896398625163345931], description="메시지 고정")
+    @slash_command(name="고정", guild_ids=guild_ids, description="메시지 고정")
     async def pinMessage(self, ctx, message_id: Option(str, "메시지 아이디 입력")):
         message = await ctx.fetch_message(int(message_id))
         await message.pin()
 
 
-    @slash_command(name="구글", guild_ids=[723892698435551324, 896398625163345931], description="구글 검색")
+    @slash_command(name="구글", guild_ids=guild_ids, description="구글 검색")
     async def googlesearch(self, ctx, query: Option(str, "검색 내용 입력")):
         await ctx.respond(f'https://www.google.co.kr/search?q={query.strip().replace(" ", "%20")}')
 
 
-    @slash_command(name="오늘의라인", guild_ids=[723892698435551324, 896398625163345931], description="롤 라인 뽑기")
+    @slash_command(name="오늘의라인", guild_ids=guild_ids, description="롤 라인 뽑기")
     async def lolLane(self, ctx):
         lane = ["탑","미드","원딜","서폿","정글"]
         await ctx.respond(f"오늘의 라인은`{lane[random.randint(0, 4)]}`", ephemeral=True)
 
 
-    @slash_command(name="로또", guild_ids=[723892698435551324, 896398625163345931], description="로또")
+    @slash_command(name="로또", guild_ids=guild_ids, description="로또")
     async def lotto(self, ctx):
         myNumber, count, bonus = automatic(mainNumber, bonusNumber)
         ranking = rank(count, bonus)
@@ -117,7 +122,7 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="help", guild_ids=[723892698435551324, 896398625163345931], description="수리릭 도움말")
+    @slash_command(name="help", guild_ids=guild_ids, description="수리릭 도움말")
     async def help(self, ctx):
         Hembed = discord.Embed(color=0xf5a9a9)
         Hembed.title = "수리릭 명령어"
