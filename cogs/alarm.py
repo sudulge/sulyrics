@@ -14,14 +14,14 @@ from config import alarm_text, guild_ids
 
 async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
     now = datetime.now(tz=timezone(timedelta(hours=9))).replace(tzinfo=None)
-    print(ampm)
+
     if ampm == "오전" and hour == 12:
         hour = 0
     if ampm == "오후" and hour < 12:
         hour = hour + 12
 
     time_ = time(hour, minute, 0)
-    print(now.time(), time_)
+
     if now.time() > time_:
         target_time = datetime.combine(now.date() + timedelta(days=1), time_)
     else:
@@ -29,9 +29,6 @@ async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
     wait_time = (target_time - now).total_seconds()
     print(target_time, wait_time)
     await asyncio.sleep(wait_time)
-
-
-
 
 
 class Alarm(commands.Cog):
@@ -45,35 +42,34 @@ class Alarm(commands.Cog):
             discord.SelectOption(label = "오전"),
             discord.SelectOption(label = "오후"),
         ])
-
         hour = Select(placeholder = "시", options=[
-            discord.SelectOption(label = 1),
-            discord.SelectOption(label = 2),
-            discord.SelectOption(label = 3),
-            discord.SelectOption(label = 4),
-            discord.SelectOption(label = 5),
-            discord.SelectOption(label = 6),
-            discord.SelectOption(label = 7),
-            discord.SelectOption(label = 8),
-            discord.SelectOption(label = 9),
-            discord.SelectOption(label = 10),
-            discord.SelectOption(label = 11),
-            discord.SelectOption(label = 12),
+            discord.SelectOption(label = '1'),
+            discord.SelectOption(label = '2'),
+            discord.SelectOption(label = '3'),
+            discord.SelectOption(label = '4'),
+            discord.SelectOption(label = '5'),
+            discord.SelectOption(label = '6'),
+            discord.SelectOption(label = '7'),
+            discord.SelectOption(label = '8'),
+            discord.SelectOption(label = '9'),
+            discord.SelectOption(label = '10'),
+            discord.SelectOption(label = '11'),
+            discord.SelectOption(label = '12'),
         ])
 
         minute = Select(placeholder = "분", options=[
-            discord.SelectOption(label = 0),
-            discord.SelectOption(label = 5),
-            discord.SelectOption(label = 10),
-            discord.SelectOption(label = 15),
-            discord.SelectOption(label = 20),
-            discord.SelectOption(label = 25),
-            discord.SelectOption(label = 30),
-            discord.SelectOption(label = 35),
-            discord.SelectOption(label = 40),
-            discord.SelectOption(label = 45),
-            discord.SelectOption(label = 50),
-            discord.SelectOption(label = 55),
+            discord.SelectOption(label = '0'),
+            discord.SelectOption(label = '5'),
+            discord.SelectOption(label = '10'),
+            discord.SelectOption(label = '15'),
+            discord.SelectOption(label = '20'),
+            discord.SelectOption(label = '25'),
+            discord.SelectOption(label = '30'),
+            discord.SelectOption(label = '35'),
+            discord.SelectOption(label = '40'),
+            discord.SelectOption(label = '45'),
+            discord.SelectOption(label = '50'),
+            discord.SelectOption(label = '55'),
         ])
 
         name_button = Button(label = "이름 변경", style=discord.ButtonStyle.primary)
@@ -91,7 +87,7 @@ class Alarm(commands.Cog):
                 embed = discord.Embed(color=0xf5a9a9)
                 embed.title = f"⏰ {ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
                 embed.description = f"{ctx.author.display_name}"
-                embed.set_footer(text="알람이 설정되었습니다.\n 설정된 시각에 dm이 발송됩니다.")
+                embed.set_footer(text="알람이 설정되었습니다.\n설정된 시각에 dm이 발송됩니다.")
                 await interaction.response.edit_message(view=None, embed=embed)
 
                 await set_alarm(str(ampm.values[0]), int(hour.values[0]), int(minute.values[0]))
@@ -106,9 +102,18 @@ class Alarm(commands.Cog):
                 await interaction.response.send_message("항목을 모두 채워주세요", delete_after=2)
         
         async def name_input_modal_callback(interaction):
-            # await interaction.response.edit_message(content=name_input_modal.children[0].value)
             await interaction.response.send_message(f'알림 이름 변경됨: {name_input_modal.children[0].value}', delete_after=2)
-        
+
+        async def ampm_callback(interaction):
+            await interaction.response.defer()
+        async def hour_callback(interaction):
+            await interaction.response.defer()
+        async def minute_callback(interaction):
+            await interaction.response.defer()
+
+        ampm.callback = ampm_callback
+        hour.callback = hour_callback
+        minute.callback = minute_callback
         name_button.callback = name_button_callback
         ok_button.callback = ok_button_callback
         name_input_modal.callback = name_input_modal_callback

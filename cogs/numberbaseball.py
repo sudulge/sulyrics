@@ -12,34 +12,37 @@ from config import guild_ids
 
 num_rx = re.compile('^[0-9]{4}$')
 
-def NBstart():
+def start():
+    global HRnumber, tried_number, log_message
     HRnumber = list(map(str, random.sample(range(0, 9), 4)))
-    tries = []
-    tries_list = ''
-    return HRnumber, tries, tries_list
+    tried_number = []
+    log_message = ''
+    return 
 
 
-def checkInput(input, tries):
+def checkInput(input):
     print(input, type(input))
     if not num_rx.match(input):
         return "네 자리 정수를 입력해 주세요"
     if len(set(input)) != 4:
         return "중복되지 않게 입력해 주세요"
-    if input in tries:
+    if input in tried_number:
         return "이미 시도한 숫자입니다."
 
     return True
 
 
-def NBhit(HRnumber, input, tries, tries_list, ctx):
-    while len(input) < 4:
-        input = '0'+input 
-    valid = checkInput(input, tries)
+def hit(input, ctx):
+    global log_message
+    while len(input) == 3: # ex) int(0123) -> 123 
+        input = '0' + input
+
+    valid = checkInput(input)
     
     if type(valid)==str:
-        return valid, ''
+        return valid
     
-    tries.append(input)
+    tried_number.append(input)
     strike = 0
     ball = 0
 
@@ -50,46 +53,48 @@ def NBhit(HRnumber, input, tries, tries_list, ctx):
             ball += 1
 
     if strike == 4:
-        result = f"홈런! {len(tries)}회 만에 맞추셨습니다"
-        NBsolecheck(tries, tries_list, ctx)
-        NBend()
+        result = f"홈런! {len(tried_number)}회 만에 맞추셨습니다"
+        solecheck(ctx)
+        end()
     elif strike == 0 and ball == 0:
         result = "아웃"
     else:
         result = f"{input}: {strike}S {ball}B"
-        
-    return result, f"{input}: {strike}S {ball}B ⠀({ctx.author.display_name})\n"
+    
+    log_message += f"{input}: {strike}S {ball}B ⠀({ctx.author.display_name})\n"
+
+    return result
 
 
-def NBsolecheck(tries, tries_list, ctx):  # 마지막으로 입력한 사람이 혼자 했는지 체크 
+def solecheck(ctx):  # 마지막으로 입력한 사람이 혼자 했는지 체크 
     author = ctx.author.display_name
-    if tries_list.count(author) == len(tries)-1:
-        NBaddhistory(tries, ctx)
+    if log_message.count(author) == len(tried_number) - 1: # 로그 메시지가 추가되기 전에 실행되기때문에 - 1
+        addhistory(ctx)
     return
 
 
-def NBaddhistory(tries, ctx):
-    with open("cogs/data/NBhistory.pickle", "rb") as f: # 깃허브에 올릴때는 sulyrics/ 빼기
+def addhistory(ctx):
+    with open("cogs/data/NBhistory.pickle", "rb") as f: 
         history = pickle.load(f)
 
     for dic in history: # 있던 사람
         if ctx.author.id in dic.values():
-            if len(tries) in dic['로그']:
-                dic['로그'][len(tries)] += 1
+            if len(tried_number) in dic['로그']:
+                dic['로그'][len(tried_number)] += 1
             else:
-                dic['로그'][len(tries)] = 1
+                dic['로그'][len(tried_number)] = 1
             dic['로그'] = dict(sorted(dic['로그'].items()))
             with open("cogs/data/NBhistory.pickle", "wb") as f:
                 pickle.dump(history, f)
             return
 
-    history.append({"id": ctx.author.id, "이름": ctx.author.name, "서버닉네임": ctx.author.display_name, "로그": {len(tries): 1}}) # 새로운 사람
+    history.append({"id": ctx.author.id, "이름": ctx.author.name, "서버닉네임": ctx.author.display_name, "로그": {len(tried_number): 1}}) # 새로운 사람
     with open("cogs/data/NBhistory.pickle", "wb") as f:
         pickle.dump(history, f)
     return
 
 
-def NBshowhistory(ctx):
+def showhistory(ctx):
     with open("cogs/data/NBhistory.pickle", "rb") as f:
         history = pickle.load(f)
     
@@ -103,9 +108,9 @@ def NBshowhistory(ctx):
     return False
 
 
-def NBend():
-    global HRnumber, tries
-    del HRnumber, tries
+def end():
+    global HRnumber, tried_number, log_message
+    del HRnumber, tried_number, log_message
 
 class NBbaseball(commands.Cog):
     def __init__(self, bot):
@@ -114,12 +119,11 @@ class NBbaseball(commands.Cog):
     @slash_command(name="숫자야구", guild_ids=guild_ids, description="숫자야구")
     async def numBaseball(self, ctx, choice: Option(str, "숫자야구", choices=["시작", "기록", "도움말"])):
         if choice == "시작":
-            global HRnumber, tries, tries_list
-            HRnumber, tries, tries_list = NBstart()
+            start()
             print(HRnumber)
             await ctx.respond("`숫자를 초기화했습니다.\n/야 명령어를 통해 숫자를 입력해 주세요.`")
         elif choice == "기록":
-            history = NBshowhistory(ctx)
+            history = showhistory(ctx)
             NBembed = discord.Embed(color=0xf5a9a9)
             NBembed.title = f"{ctx.author.display_name}"
             NBembed.description = "================================="
@@ -143,22 +147,23 @@ class NBbaseball(commands.Cog):
     @slash_command(name="야", guild_ids=guild_ids, description="숫자야구")
     async def numBaseballInput(self, ctx, input: Option(int, "네자리 숫자 입력")):
         try:
-            global tries_list, msg
-            result, log = NBhit(HRnumber, str(input), tries, tries_list, ctx)
-            tries_list += log
-            NBembed = discord.Embed(color=0xf5a9a9)
-            NBembed.title = result
-            NBembed.description = "=========================="
-            NBembed.add_field(name="로그", value=f"```{tries_list}```")
+            result = hit(str(input), ctx)
+            embed = discord.Embed(color=0xf5a9a9)
+            embed.title = result
+            embed.description = "=========================="
+            embed.add_field(name="로그", value=f"```{log_message}```")
+
             try:
                 await msg.delete_original_message()
             finally:
-                msg = await ctx.respond(embed=NBembed)
+                msg = await ctx.respond(embed=embed)
+
         except NameError as e:
             if 'msg' in str(e): # 처음 시작 하면 msg가 없음
                 pass
-            else:
+            else:               # 홈런으로 끝난 후 다시 /야 칠떄 HRnumber가 없음
                 await ctx.respond("`/숫자야구 명령어를 통해 숫자를 초기화 해주세요.`")
+
 
 def setup(bot):
     bot.add_cog(NBbaseball(bot))
