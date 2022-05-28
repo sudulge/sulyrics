@@ -1,5 +1,0 @@
-py-cord==2.0.0b7
-pytz
-neispy
-lavalink
-spotipy
