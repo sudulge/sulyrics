@@ -80,36 +80,42 @@ class Alarm(commands.Cog):
 
 
         async def name_button_callback(interaction):
-            await interaction.response.send_modal(name_input_modal)
+            if interaction.user == ctx.author:
+                await interaction.response.send_modal(name_input_modal)
         
         async def ok_button_callback(interaction):
-            if ampm.values and hour.values and minute.values:
-                embed = discord.Embed(color=0xf5a9a9)
-                embed.title = f"⏰ {ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
-                embed.description = f"{ctx.author.display_name}"
-                embed.set_footer(text="알람이 설정되었습니다.\n설정된 시각에 dm이 발송됩니다.")
-                await interaction.response.edit_message(view=None, embed=embed)
+            if interaction.user == ctx.author:
+                if ampm.values and hour.values and minute.values:
+                    embed = discord.Embed(color=0xf5a9a9)
+                    embed.title = f"⏰ {ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 | {name_input_modal.children[0].value}"
+                    embed.description = f"{ctx.author.display_name}"
+                    embed.set_footer(text="알람이 설정되었습니다.\n설정된 시각에 dm이 발송됩니다.")
+                    await interaction.response.edit_message(view=None, embed=embed)
 
-                await set_alarm(str(ampm.values[0]), int(hour.values[0]), int(minute.values[0]))
+                    await set_alarm(str(ampm.values[0]), int(hour.values[0]), int(minute.values[0]))
 
-                user = await self.bot.fetch_user(ctx.author.id)
-                embed = discord.Embed(color=0xf5a9a9)
-                embed.title =f"⏰ {name_input_modal.children[0].value}" 
-                embed.description = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 입니다! {random.choice(alarm_text)}"
-                await user.send(embed = embed)
+                    user = await self.bot.fetch_user(ctx.author.id)
+                    embed = discord.Embed(color=0xf5a9a9)
+                    embed.title =f"⏰ {name_input_modal.children[0].value}" 
+                    embed.description = f"{ampm.values[0]} {hour.values[0]}시 {minute.values[0]}분 입니다! {random.choice(alarm_text)}"
+                    await user.send(embed = embed)
 
-            else:
-                await interaction.response.send_message("항목을 모두 채워주세요", delete_after=2)
+                else:
+                    await interaction.response.send_message("항목을 모두 채워주세요", delete_after=2)
         
         async def name_input_modal_callback(interaction):
-            await interaction.response.send_message(f'알림 이름 변경됨: {name_input_modal.children[0].value}', delete_after=2)
+            if interaction.user == ctx.author:
+                await interaction.response.send_message(f'알림 이름 변경됨: {name_input_modal.children[0].value}', delete_after=2)
 
         async def ampm_callback(interaction):
-            await interaction.response.defer()
+            if interaction.user == ctx.author:
+                await interaction.response.defer()
         async def hour_callback(interaction):
-            await interaction.response.defer()
+            if interaction.user == ctx.author:
+                await interaction.response.defer()
         async def minute_callback(interaction):
-            await interaction.response.defer()
+            if interaction.user == ctx.author:
+                await interaction.response.defer()
 
         ampm.callback = ampm_callback
         hour.callback = hour_callback

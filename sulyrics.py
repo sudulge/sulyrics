@@ -45,7 +45,7 @@ class Sulyrics(commands.Bot):
         elif message.channel.id == 954249440552697907 and imoji_rx.match(message.content):
             await message.delete()
             user = await self.fetch_user(message.author.id)
-            embed = discord.Embed(color=user.accent_color)
+            embed = discord.Embed(color=0x2f3136)
             embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar)
             embed.set_image(url=f'https://cdn.discordapp.com/emojis/{message.content.split(":")[2].split(">")[0]}') 
             await message.channel.send(embed=embed)
