@@ -109,8 +109,8 @@ def showhistory(ctx):
 
 
 def end():
-    global HRnumber, tried_number, log_message
-    del HRnumber, tried_number, log_message
+    global HRnumber # tried_number, log_message 는 홈런메시지에 출력해줘야해서 지우면 안됨.
+    del HRnumber
 
 class NBbaseball(commands.Cog):
     def __init__(self, bot):
