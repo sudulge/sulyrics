@@ -15,14 +15,18 @@ intents = discord.Intents.all()
 
 imoji_rx =  re.compile('^<a?:.+?:\d+>$')
 
-today_saying = random.choice(sayinglist)
-embed = discord.Embed(color=0x87cefa)
-embed.set_author(name='오늘의 명언', icon_url='https://cdn.discordapp.com/attachments/731547490347909120/972639147170873344/unknown.png')
-embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/731547490347909120/972639446744842281/unknown.png')
-embed.title = today_saying[0]
-embed.description = today_saying[1]
-embed.set_footer(text=f'{today_saying[2]} | {today_saying[3]}')
 morning = time(7, 0, 0)
+
+def sayingEmbed():
+    today_saying = random.choice(sayinglist)
+    embed = discord.Embed(color=0x87cefa)
+    embed.set_author(name='오늘의 명언', icon_url='https://cdn.discordapp.com/attachments/731547490347909120/972639147170873344/unknown.png')
+    embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/731547490347909120/972639446744842281/unknown.png')
+    embed.title = today_saying[0]
+    embed.description = today_saying[1]
+    embed.set_footer(text=f'{today_saying[2]} | {today_saying[3]}')
+    return embed
+
 
 class Sulyrics(commands.Bot):
     def __init__(self):
@@ -61,6 +65,7 @@ class Sulyrics(commands.Bot):
                 target_time = datetime.combine(now.date(), morning)
             wait_time = (target_time - now).total_seconds()
             await asyncio.sleep(wait_time)
+            embed = sayingEmbed()
             channel = bot.get_channel(723894009856131132)
             await channel.send("좋은 아침 !", embed=embed)
             channel = bot.get_channel(954249440552697907)
