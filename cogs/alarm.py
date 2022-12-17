@@ -35,7 +35,7 @@ class Alarm(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @slash_command(name="알람", guild_ids=guild_ids, description="알람을 설정합니다.")
+    @slash_command(name="알람", description="알람을 설정합니다.")
     async def alarm(self, ctx):
 
         ampm = Select(placeholder = "오전/오후", options=[

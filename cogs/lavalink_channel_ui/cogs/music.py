@@ -14,6 +14,7 @@ remove 제거
 list 플레이리스트
 search 검색
 disconnect 
+setting 
 '''
 
 
@@ -31,15 +32,12 @@ from discord.ui import Select, Button, Modal, View, InputText
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pickle
-from dotenv import load_dotenv
-
-load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from config import guild_ids
 
-cid = os.getenv["spotipy_client_id"]
-secret = os.getenv["spotipy_client_secret"]
+cid = os.environ["SPOTIPY_CLIENT_ID"]
+secret = os.environ["SPOTIPY_CLIENT_SECRET"]
 client_credentials_manager = SpotifyClientCredentials(client_id=cid, client_secret=secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 

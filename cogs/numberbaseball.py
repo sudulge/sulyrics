@@ -116,7 +116,7 @@ class NBbaseball(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(name="숫자야구", guild_ids=guild_ids, description="숫자야구")
+    @slash_command(name="숫자야구", description="숫자야구")
     async def numBaseball(self, ctx, choice: Option(str, "숫자야구", choices=["시작", "기록", "도움말"])):
         if choice == "시작":
             start()
@@ -144,7 +144,7 @@ class NBbaseball(commands.Cog):
             await ctx.respond(embed=NBembed)
 
 
-    @slash_command(name="야", guild_ids=guild_ids, description="숫자야구")
+    @slash_command(name="야", description="숫자야구")
     async def numBaseballInput(self, ctx, input: Option(int, "네자리 숫자 입력")):
         try:
             result = hit(str(input), ctx)

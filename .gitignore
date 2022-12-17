@@ -1,4 +1,5 @@
 __pycache__/
 logs/
 cogs/__pycache__/
-cogs/data/
+.env
+*.pickle

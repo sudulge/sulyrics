@@ -57,13 +57,13 @@ class Others(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(guild_ids=guild_ids, description="check bot's response latency")
+    @slash_command(description="check bot's response latency")
     async def ping(self, ctx):
         embed = discord.Embed(title="Pong!", description=f"Delay: {self.bot.latency} seconds", color=0xf5a9a9)
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="정보", guild_ids=guild_ids, description="수리릭 정보")
+    @slash_command(name="정보", description="수리릭 정보")
     async def sulyricsInfo(self, ctx):
         embed = discord.Embed(title="Sulyrics", color=0xf5a9a9)
         embed.add_field(name="이름", value="수리릭", inline=True)
@@ -74,7 +74,7 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="자기소개", guild_ids=guild_ids, description="사용자 정보")
+    @slash_command(name="자기소개", description="사용자 정보")
     async def userInfo(self, ctx):
         date = datetime.utcfromtimestamp(((int(ctx.author.id) >> 22) + 1420070400000) / 1000)
         user = await self.bot.fetch_user(ctx.author.id)
@@ -87,29 +87,30 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="삭제", guild_ids=guild_ids, description="메시지 삭제")
+    @slash_command(name="삭제", description="메시지 삭제")
     async def deleteMessage(self, ctx, limit: Option(int, "지울 개수 입력")):
         await ctx.channel.purge(limit=limit, check=lambda msg: not msg.pinned)
+        await ctx.respond(f"{limit}개 삭제 완료", ephemeral=True)
 
 
-    @slash_command(name="고정", guild_ids=guild_ids, description="메시지 고정")
+    @slash_command(name="고정", description="메시지 고정")
     async def pinMessage(self, ctx, message_id: Option(str, "메시지 아이디 입력")):
         message = await ctx.fetch_message(int(message_id))
         await message.pin()
 
 
-    @slash_command(name="구글", guild_ids=guild_ids, description="구글 검색")
+    @slash_command(name="구글", description="구글 검색")
     async def googlesearch(self, ctx, query: Option(str, "검색 내용 입력")):
         await ctx.respond(f'https://www.google.co.kr/search?q={query.strip().replace(" ", "%20")}')
 
 
-    @slash_command(name="오늘의라인", guild_ids=guild_ids, description="롤 라인 뽑기")
+    @slash_command(name="오늘의라인", description="롤 라인 뽑기")
     async def lolLane(self, ctx):
         lane = ["탑","미드","원딜","서폿","정글"]
         await ctx.respond(f"오늘의 라인은`{lane[random.randint(0, 4)]}`", ephemeral=True)
 
 
-    @slash_command(name="로또", guild_ids=guild_ids, description="로또")
+    @slash_command(name="로또", description="로또")
     async def lotto(self, ctx):
         myNumber, count, bonus = automatic(mainNumber, bonusNumber)
         ranking = rank(count, bonus)
@@ -122,16 +123,21 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @slash_command(name="help", guild_ids=guild_ids, description="수리릭 도움말")
+    @slash_command(name="help", description="수리릭 도움말")
     async def help(self, ctx):
         Hembed = discord.Embed(color=0xf5a9a9)
         Hembed.title = "수리릭 명령어"
         Hembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/731547490347909120/941329421552467998/c39add417a556179.png")
         Hembed.add_field(name="정보", value="`정보` `자기소개`", inline=False)
         Hembed.add_field(name="채팅", value="`삭제` `고정`", inline=False)
-        Hembed.add_field(name="음악", value="`play` `list` `skip` `stop` `now_playing` `queue` `seek` `pause` `repeat` `remove`", inline=False)
+        Hembed.add_field(name="음악", value="`play 재생` `skip 스킵` `stop 정지`\n`pause 일시정지` `seek 탐색` `loop 반복`\n`now_playing` `queue 큐` `remove 제거` `list 플레이리스트` `search 검색` `disconnect`", inline=False)
         Hembed.add_field(name="기타", value="`알람` `급식` `로또` `숫자야구` `야` `오늘의라인` `구글`", inline=False)
         await ctx.respond(embed=Hembed)
+    
+
+    @slash_command(name="nothing", description='nothing')
+    async def nothing(self, ctx):
+        await ctx.respond("This is nothing", ephemeral=True)
 
     #
     # @bot.slash_command(name="", guild_ids=[723892698435551324], description="")

@@ -6,6 +6,9 @@ from pytz import timezone
 from neispy import Neispy
 import os
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from config import guild_ids
@@ -14,10 +17,10 @@ class Lunch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(name="급식", guild_ids=guild_ids, description="급식")
+    @slash_command(name="급식", description="급식")
     async def lunch(self, ctx, school: Option(str, "학교 이름 입력")):
         today = str(datetime.now())[:10].replace('-', '')
-        neis_key = os.environ["NEIS_API_KEY"]
+        neis_key = os.getenv["neis_api_key"]
 
         async with Neispy(KEY=neis_key) as neis:
             try:
