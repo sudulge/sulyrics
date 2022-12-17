@@ -20,7 +20,7 @@ class Lunch(commands.Cog):
     @slash_command(name="급식", description="급식")
     async def lunch(self, ctx, school: Option(str, "학교 이름 입력")):
         today = str(datetime.now())[:10].replace('-', '')
-        neis_key = os.getenv["neis_api_key"]
+        neis_key = os.getenv("neis_api_key")
 
         async with Neispy(KEY=neis_key) as neis:
             try:

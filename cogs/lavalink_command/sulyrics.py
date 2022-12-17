@@ -44,5 +44,5 @@ class Sulyrics(commands.Bot):
         await ctx.respond(embed=embed)
 
 bot = Sulyrics()
-bot_token = os.getenv["bot_token"]
+bot_token = os.getenv("bot_token")
 bot.run(bot_token)
