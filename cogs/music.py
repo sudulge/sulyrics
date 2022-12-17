@@ -133,7 +133,7 @@ class LavalinkVoiceClient(discord.VoiceClient):
 
 async def get_all_data():
     try:
-        with open("lavalink_gui/cogs/data/music.pickle", 'rb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
+        with open("cogs/data/music.pickle", 'rb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
             return pickle.load(f)
     except FileNotFoundError:
         return {}
