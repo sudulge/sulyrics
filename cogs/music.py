@@ -143,7 +143,7 @@ async def get_all_data():
 async def add_data(guild_id, channel_id, message_id):
     data = await get_all_data()
     data[guild_id] = {"channel_id": channel_id, "message_id": message_id}
-    with open('lavalink_gui/cogs/data/music.pickle', 'wb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
+    with open('cogs/data/music.pickle', 'wb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
         pickle.dump(data, f)
 
 async def get_data(guild_id):
