@@ -174,6 +174,8 @@ class Music(commands.Cog):
 
         lavalink.add_event_hook(self.track_hook)
 
+        self.shuffle = False
+
     def cog_unload(self):
         """ Cog unload handler. This removes any event hooks that were registered. """
         self.bot.lavalink._event_hooks.clear()
@@ -368,7 +370,11 @@ class Music(commands.Cog):
         if results.load_type == 'PLAYLIST_LOADED':
             tracks = results.tracks
             first = tracks[0]
-            random.shuffle(tracks)
+            if self.shuffle:
+                random.shuffle(tracks)
+                self.shuffle = False
+            else:
+                pass
 
             for track in tracks:
                 # Add all of the tracks from the playlist to the queue.
@@ -620,7 +626,7 @@ class Music(commands.Cog):
         duration_sec = int(player.current.duration/1000%60)
 
         embed.title = '지금 재생 중'
-        embed.description = f'[{player.current.title}]({player.current.uri})\n`[{now_min:02d}:{now_sec:02d}/{duration_min:02d}:{duration_sec:02d}`\n\nRequested by: <@{player.current.requester}>'
+        embed.description = f'[{player.current.title}]({player.current.uri}&t={now_min}m{now_sec}s)\n`[{now_min:02d}:{now_sec:02d}/{duration_min:02d}:{duration_sec:02d}`\n\nRequested by: <@{player.current.requester}>'
         embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{player.current.identifier}/mqdefault.jpg')
         await ctx.respond(embed=embed, delete_after=5)
 
@@ -677,6 +683,7 @@ class Music(commands.Cog):
         ])
 
         async def callback(interaction):
+            self.shuffle = False
             await self.play(ctx, playlist[select.values[0]])
             await interaction.response.edit_message(delete_after=0)
 

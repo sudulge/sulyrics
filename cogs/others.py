@@ -123,6 +123,11 @@ class Others(commands.Cog):
         await ctx.respond(embed=embed)
 
 
+    @slash_command(name="으악이유튜브", description="영찬이 유튜브")
+    async def euak(self, ctx):
+        await ctx.respond("https://www.youtube.com/@HokagouTeaTime")
+
+
     @slash_command(name="help", description="수리릭 도움말")
     async def help(self, ctx):
         Hembed = discord.Embed(color=0xf5a9a9)
