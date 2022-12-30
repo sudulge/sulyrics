@@ -304,7 +304,7 @@ class Music(commands.Cog):
                 queue_list = ''
                 for index, track in enumerate(player.queue[start:end], start=start+1):
                     queue_list += f'**{index}**. [{track.title}]({track.uri})\n'
-                listembed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+                listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
                 listembed.set_footer(text=f"{page}/{pages} page")
 
             channel = await self.bot.fetch_channel(player.fetch('channel_id'))
@@ -418,7 +418,7 @@ class Music(commands.Cog):
             queue_list = ''
             for index, track_ in enumerate(player.queue[start:end], start=start+1):
                 queue_list += f'**{index}**. [{track_.title}]({track_.uri})\n'
-            listembed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+            listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
             listembed.set_footer(text=f"{page}/{pages} page")
             if isinstance(ctx, discord.Message):
                 msg = await ctx.channel.fetch_message(player.fetch('message_id'))
@@ -603,7 +603,7 @@ class Music(commands.Cog):
             queue_list = ''
             for index, track in enumerate(player.queue[start:end], start=start+1):
                 queue_list += f'**{index}**. [{track.title}]({track.uri})\n'
-            listembed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+            listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
             listembed.set_footer(text=f"{page}/{pages} page")
 
         msg = await ctx.fetch_message(player.fetch('message_id'))
@@ -660,7 +660,7 @@ class Music(commands.Cog):
 
         for index, track in enumerate(player.queue[start:end], start=start+1):
             queue_list += f'**{index}**. [{track.title}]({track.uri})\n'
-        embed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+        embed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
         embed.set_footer(text=f"{page}/{pages} page")
         await ctx.respond(embed=embed, delete_after=5)
 
@@ -683,7 +683,7 @@ class Music(commands.Cog):
         ])
 
         async def callback(interaction):
-            self.shuffle = False
+            self.shuffle = True
             await self.play(ctx, playlist[select.values[0]])
             await interaction.response.edit_message(delete_after=0)
 
@@ -850,7 +850,7 @@ class MyView(View):
         queue_list = ''
         for index, track_ in enumerate(player.queue[start:end], start=start+1):
             queue_list += f'**{index}**. [{track_.title}]({track_.uri})\n'
-        listembed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+        listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
         listembed.set_footer(text=f"{page}/{pages} page")
 
         channel = await interaction.client.fetch_channel(player.fetch('channel_id'))
@@ -886,7 +886,7 @@ class MyView(View):
         queue_list = ''
         for index, track_ in enumerate(player.queue[start:end], start=start+1):
             queue_list += f'**{index}**. [{track_.title}]({track_.uri})\n'
-        listembed.description = f'**Now Playing**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+        listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
         listembed.set_footer(text=f"{page}/{pages} page")
             
         channel = await interaction.client.fetch_channel(player.fetch('channel_id'))
