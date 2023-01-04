@@ -51,7 +51,7 @@ class Isedol(commands.Cog):
         return embed
 
 
-    @slash_command(name="이세돌", description="이세돌 뱅온 정보", guild_ids=[896398625163345931])
+    @slash_command(name="이세돌", description="이세돌 뱅온 정보")
     async def isedol(self, ctx):
         info = self.get_info()
         embed = self.make_embed(info)
