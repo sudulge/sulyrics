@@ -8,8 +8,7 @@ import random
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # 디렉토리 추가
-from config import alarm_text, guild_ids
+from data.data import alarm_text
 
 
 async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
