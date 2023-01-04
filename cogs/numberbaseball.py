@@ -7,8 +7,6 @@ import sys
 import re
 import os
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from config import guild_ids
 
 num_rx = re.compile('^[0-9]{4}$')
 

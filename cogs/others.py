@@ -6,9 +6,6 @@ import random
 import sys
 import os
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from config import guild_ids
-
 
 def lotto():
     lottoNumber = random.sample(range(1, 46), 7)

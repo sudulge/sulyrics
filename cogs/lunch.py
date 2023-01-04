@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from config import guild_ids
 
 class Lunch(commands.Cog):
     def __init__(self, bot):

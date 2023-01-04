@@ -46,8 +46,6 @@ url_rx = re.compile(r'https?://(?:www\.)?.+')
 spotify_rx = re.compile('.+open.spotify.com/.+')
 
 
-
-
 class LavalinkVoiceClient(discord.VoiceClient):
     """
     This is the preferred way to handle external voice sending
