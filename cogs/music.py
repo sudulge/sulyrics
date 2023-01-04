@@ -35,7 +35,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from data.data import playlist
+from .data.data import playlist
 
 cid = os.getenv("spotipy_client_id")
 secret = os.getenv("spotipy_client_secret")

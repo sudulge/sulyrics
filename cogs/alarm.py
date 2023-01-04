@@ -8,7 +8,7 @@ import random
 import os
 import sys
 
-from data.data import alarm_text
+from .data.data import alarm_text
 
 
 async def set_alarm(ampm, hour, minute): #정수값으로 보내주기
