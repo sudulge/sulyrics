@@ -34,7 +34,7 @@ class Isedol(commands.Cog):
                     info.append(contents["data"][0]["title"])
             except:
                 info.append(None)
-        print(info)
+                
         return info
 
     def make_embed(self, list):

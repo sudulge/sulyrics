@@ -499,6 +499,7 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             embed.title = "재생 중인 곡이 없습니다"
+            await ctx.voice_client.disconnect(force=True)
             return await ctx.respond(embed=embed, delete_after=1)
 
         player.queue.clear()
