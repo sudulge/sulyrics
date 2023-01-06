@@ -498,7 +498,7 @@ class Music(commands.Cog):
         embed = discord.Embed(color=0xf5a9a9)
 
         if not player.is_playing:
-            embed.title = "재생 중인 곡이 없습니다"
+            embed.title = "플레이어 종료"
             await ctx.voice_client.disconnect(force=True)
             return await ctx.respond(embed=embed, delete_after=1)
 
@@ -797,7 +797,8 @@ class MyView(View):
         embed = discord.Embed(color=0xf5a9a9)
 
         if not player or not player.is_playing:
-            embed.title = "재생 중인 곡이 없습니다"
+            embed.title = "플레이어 종료"
+            await interaction.guild.voice_client.disconnect(force=True)
             return await interaction.response.send_message(embed=embed, delete_after=1)
 
         player.queue.clear()
