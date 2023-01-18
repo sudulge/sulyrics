@@ -575,7 +575,7 @@ class Music(commands.Cog):
             return await ctx.respond(embed=embed, delete_after=1)
 
         if index > len(player.queue) or index < 1:
-            return await ctx.respond(f'1 부터 {len(player.queue)} 사이의 정수를 입력해주세요')
+            return await ctx.respond(f'1 부터 {len(player.queue)} 사이의 정수를 입력해주세요', delete_after=1)
         removed = player.queue.pop(index - 1)
         await ctx.respond(f'`제거:: {index}. {removed.title}`', delete_after=1)
 
@@ -660,17 +660,7 @@ class Music(commands.Cog):
 
     @slash_command(name="list", description="플레이리스트")
     async def playlist(self, ctx):
-        select = discord.ui.Select(placeholder='플레이 리스트 선택', options=[
-            discord.SelectOption(label='ALL(왁타버스) : MUSIC'),
-            discord.SelectOption(label='ISEGYE IDOL : MUSIC'),
-            discord.SelectOption(label='아이네'),
-            discord.SelectOption(label='징버거'),
-            discord.SelectOption(label='릴파'),
-            discord.SelectOption(label='주르르'),
-            discord.SelectOption(label='고세구'),
-            discord.SelectOption(label='비챤')
-        ])
-
+        select = discord.ui.Select(placeholder='플레이 리스트 선택', options=[discord.SelectOption(label=title) for title in playlist])
         async def callback(interaction):
             self.shuffle = True
             await self.play(ctx, playlist[select.values[0]])
