@@ -30,6 +30,7 @@ from discord.commands import slash_command, Option
 from discord.ui import Select, Button, Modal, View, InputText
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from ytmusicapi import YTMusic
 import pickle
 from dotenv import load_dotenv
 
@@ -358,6 +359,9 @@ class Music(commands.Cog):
         if results.load_type == 'PLAYLIST_LOADED':
             tracks = results.tracks
             first = tracks[0]
+
+            # /list, /플레이리스트 명령어로 넣었을때는 self.shuffle을 True로 바꿔줘서 셔플하기. 
+            # 그냥 링크로 넣었을때는 셔플 x 
             if self.shuffle:
                 random.shuffle(tracks)
                 self.shuffle = False
@@ -897,6 +901,99 @@ class MyView(View):
             player.set_loop(0)
             embed.title = "반복을 끕니다"
         await interaction.response.send_message(embed=embed, delete_after=1)
+
+
+    @discord.ui.button(label="플레이리스트 생성", style=discord.ButtonStyle.secondary, custom_id="persistent_view:make_playlist")
+    async def make_playlist(self, button:discord.ui.Button, interaction: discord.Interaction):
+        await self.ensure_voice_chat(interaction)
+        player = interaction.client.lavalink.player_manager.get(interaction.guild.id)
+        embed = discord.Embed(color=0xf5a9a9)
+
+        # if not player or not player.is_playing:
+        #     embed.title = "재생 중인 곡이 없습니다"
+        #     return await interaction.response.send_message(embed=embed, delete_after=1)
+
+        # 방식 1. tmp 플레이리스트에 추가해주고 Music.play()로 플레이리스트 재생 해주기 - 잘 안돼서 oop 배우고 다시 해보기
+        # 방식 2. for문 안에서 player.add 를 통해서 직접 추가해주고 마지막에 리스트임베드 업데이트 해주기. 
+        # 방식 2-1. 유튜브 링크로 하나하나 추가해주기
+        # 둘 다 해 보기
+
+        # title = "징테이"
+
+        # ytmusic = YTMusic('cogs/data/headers_auth.json')
+        # search_results = ytmusic.search(query="징테이")
+        # playlist = ytmusic.get_watch_playlist(videoId=search_results[0]['videoId'])
+        # tracks = playlist['tracks']
+        # li = []
+
+        # for i in tracks[1:]:
+        #     results = await player.node.get_tracks(f"https://www.youtube.com/watch?v={i['videoId']}")
+        #     track = results.tracks[0]
+        #     player.add(requester=interaction.user.id, track=track)
+        # print(player.queue)
+
+        # 방식 2-2. tmp 플레이리스트 만들고 그걸 추가하기. -이게 나은듯? 훨씬빠름 - 결국은 1번 방법으로 돌아가는게 맞을듯. 
+
+        title = player.current.title
+
+        ytmusic = YTMusic('cogs/data/headers_auth.json')
+        search_results = ytmusic.search(query=title)
+        playlist = ytmusic.get_watch_playlist(videoId=search_results[0]['videoId'])['tracks']
+
+        li = [ i['videoId'] for i in playlist[1:] ]
+
+        playlistId = ytmusic.create_playlist(title=f"{title} - 관련 트랙", description="tmp playlist for sulyrics", privacy_status='PUBLIC', video_ids=li)
+        
+        url = f"https://www.youtube.com/playlist?list={playlistId}"
+        results = await player.node.get_tracks(url)
+        tracks = results.tracks
+        first = tracks[0]
+
+        for track in tracks:
+            player.add(requester=interaction.user.id, track=track)
+        
+        embed.title = '플레이리스트 추가'
+        embed.description = f'[{results.playlist_info.name}]({url}) - {len(tracks)} tracks'
+        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg')
+        await interaction.response.send_message(embed=embed, delete_after=1)            
+
+
+        listembed = discord.Embed(color=0xf5a9a9)
+        listembed.title = '재생 목록'
+        page = 1
+        tracks_per_page = 5
+        pages = math.ceil(len(player.queue) / tracks_per_page) # queue 올림해서 페이지 수 계산
+        start = (page - 1) * tracks_per_page
+        end = start + tracks_per_page
+        queue_list = ''
+        for index, track_ in enumerate(player.queue[start:end], start=start+1):
+            queue_list += f'**{index}**. [{track_.title}]({track_.uri})\n'
+        listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+        listembed.set_footer(text=f"{page}/{pages} page")
+
+        channel = await interaction.client.fetch_channel(player.fetch('channel_id'))
+        msg = await channel.fetch_message(player.fetch('message_id'))
+        await msg.edit(embeds=[listembed, msg.embeds[1]])
+        player.store('page', 1)
+
+        ytmusic.delete_playlist(playlistId)
+
+
+
+
+
+
+
+
+
+        # playlistId = ytmusic.create_playlist(title=f"{title} - 관련 트랙", description="tmp playlist for sulyrics", privacy_status='PUBLIC', video_ids=li)
+
+        # url = f"https://www.youtube.com/playlist?list={playlistId}"
+
+        # await Music.play(interaction, url)
+
+        # ytmusic.delete_playlist(playlistId)
+
 
 
 def setup(bot):
