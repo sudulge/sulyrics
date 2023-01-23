@@ -309,7 +309,7 @@ class Music(commands.Cog):
         playerembed = await idlePlayerEmbed()
         message = await channel.send(embeds=[listembed, playerembed], view=MyView())
         await add_data(ctx.guild.id, channel.id, message.id)
-        await ctx.respond('채널 추가 완료. 채널 이름은 바꿔도 됩니다')
+        await ctx.respond('노래 채널 추가 완료 \n채널 알림은 꺼놓는 것을 추천합니다')
 
 
     @slash_command(name='재생', description="play")
@@ -693,6 +693,23 @@ class Music(commands.Cog):
         await player.stop()
         await ctx.voice_client.disconnect(force=True)
         await ctx.respond('Bye', delete_after=1)
+
+
+    @slash_command(name="updateview", description="노래 채널 View 수정")
+    async def updateview(self, ctx):
+        if await self.bot.is_owner(ctx.user):
+            with open('cogs/data/music.pickle', 'rb') as f:
+                dict = pickle.load(f)
+            for i in dict.values():
+                try:
+                    channel = await self.bot.fetch_channel(i['channel_id'])
+                    msg = await channel.fetch_message(i['message_id'])
+                    await msg.edit(view=MyView())
+                except:
+                    pass
+            await ctx.respond('View 업데이트 완료', delete_after=1)
+        else:
+            await ctx.respond('사용할 수 없습니다', delete_after=1)
 
 
 class MyView(View):
