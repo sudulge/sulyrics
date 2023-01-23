@@ -909,30 +909,13 @@ class MyView(View):
         player = interaction.client.lavalink.player_manager.get(interaction.guild.id)
         embed = discord.Embed(color=0xf5a9a9)
 
-        # if not player or not player.is_playing:
-        #     embed.title = "재생 중인 곡이 없습니다"
-        #     return await interaction.response.send_message(embed=embed, delete_after=1)
+        if not player or not player.is_playing:
+            embed.title = "재생 중인 곡이 없습니다"
+            return await interaction.response.send_message(embed=embed, delete_after=1)
 
-        # 방식 1. tmp 플레이리스트에 추가해주고 Music.play()로 플레이리스트 재생 해주기 - 잘 안돼서 oop 배우고 다시 해보기
-        # 방식 2. for문 안에서 player.add 를 통해서 직접 추가해주고 마지막에 리스트임베드 업데이트 해주기. 
-        # 방식 2-1. 유튜브 링크로 하나하나 추가해주기
-        # 둘 다 해 보기
-
-        # title = "징테이"
-
-        # ytmusic = YTMusic('cogs/data/headers_auth.json')
-        # search_results = ytmusic.search(query="징테이")
-        # playlist = ytmusic.get_watch_playlist(videoId=search_results[0]['videoId'])
-        # tracks = playlist['tracks']
-        # li = []
-
-        # for i in tracks[1:]:
-        #     results = await player.node.get_tracks(f"https://www.youtube.com/watch?v={i['videoId']}")
-        #     track = results.tracks[0]
-        #     player.add(requester=interaction.user.id, track=track)
-        # print(player.queue)
-
-        # 방식 2-2. tmp 플레이리스트 만들고 그걸 추가하기. -이게 나은듯? 훨씬빠름 - 결국은 1번 방법으로 돌아가는게 맞을듯. 
+        embed.title = "플레이리스트를 생성 중입니다..."
+        embed.description = f"<@310691116049629184> 유튜브 뮤직 기준이므로 이세돌이 있을 수 있음 🤪"
+        await interaction.response.send_message(embed=embed, delete_after=1)
 
         title = player.current.title
 
@@ -955,8 +938,7 @@ class MyView(View):
         embed.title = '플레이리스트 추가'
         embed.description = f'[{results.playlist_info.name}]({url}) - {len(tracks)} tracks'
         embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg')
-        await interaction.response.send_message(embed=embed, delete_after=1)            
-
+        await interaction.channel.send(embed=embed, delete_after=1)            
 
         listembed = discord.Embed(color=0xf5a9a9)
         listembed.title = '재생 목록'
@@ -977,23 +959,6 @@ class MyView(View):
         player.store('page', 1)
 
         ytmusic.delete_playlist(playlistId)
-
-
-
-
-
-
-
-
-
-        # playlistId = ytmusic.create_playlist(title=f"{title} - 관련 트랙", description="tmp playlist for sulyrics", privacy_status='PUBLIC', video_ids=li)
-
-        # url = f"https://www.youtube.com/playlist?list={playlistId}"
-
-        # await Music.play(interaction, url)
-
-        # ytmusic.delete_playlist(playlistId)
-
 
 
 def setup(bot):
