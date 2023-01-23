@@ -203,7 +203,7 @@ class Music(commands.Cog):
         # These are commands that require the bot to join a voicechannel (i.e. initiating playback).
         # Commands such as volume/skip etc don't require the bot to be in a voicechannel so don't need listing here.
         should_connect = ctx.command.name in ('play', '재생', 'list', '플레이리스트', 'search', '검색') #봇을 들어오게 하는 커맨드인듯 ? 
-        normal_command = ctx.command.name in ('setting') # 봇 클라이언트와 관련 없는 커맨드 (임의로 만듦)
+        normal_command = ctx.command.name in ('setting', 'updateview') # 봇 클라이언트와 관련 없는 커맨드 (임의로 만듦)
 
         if not ctx.author.voice or not ctx.author.voice.channel:
             # Our cog_command_error handler catches this and sends it to the voicechannel.
