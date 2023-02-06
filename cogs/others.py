@@ -124,6 +124,10 @@ class Others(commands.Cog):
     async def euak(self, ctx):
         await ctx.respond("https://www.youtube.com/@HokagouTeaTime")
 
+    @slash_command(name="건준티비", description="건준이 유튜브")
+    async def gunzoon(self, ctx):
+        await ctx.respond("https://www.youtube.com/@lkj1850")
+
 
     @slash_command(name="help", description="수리릭 도움말")
     async def help(self, ctx):
