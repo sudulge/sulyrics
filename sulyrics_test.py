@@ -2,6 +2,7 @@
 
 # with pycord
 
+# 음악 테스트 할때 1. sulyrics 경로부터 실행, 2. music.py 파일에 클라이언트 아이디 바꿔주기
 import discord
 from discord.ext import commands
 from discord.commands import slash_command
@@ -22,7 +23,7 @@ intents = discord.Intents.all()
 
 async def get_all_data():
     try:
-        with open("cogs/data/music.pickle", 'rb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
+        with open("cogs/data/music_channel.pickle", 'rb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
             return pickle.load(f)
     except FileNotFoundError:
         return {}
@@ -69,7 +70,7 @@ class SulyricsTest(commands.Bot):
     async def on_application_command_error(self, ctx, exception):
         embed = discord.Embed(color=0xf5a9a9)
         embed.title = "다시 시도해주세요"
-        embed.description = f"`/{ctx.command}`  {exception.original}"
+        embed.description = f"`/{ctx.command}`  {exception}"
         await ctx.respond(embed=embed, delete_after=3)
 
 bot = SulyricsTest()

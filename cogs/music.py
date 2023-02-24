@@ -13,6 +13,7 @@ queue 큐
 remove 제거
 list 플레이리스트
 search 검색
+log 기록
 disconnect 
 '''
 
@@ -32,6 +33,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from ytmusicapi import YTMusic
 import pickle
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -120,23 +122,32 @@ class LavalinkVoiceClient(discord.VoiceClient):
         self.cleanup()
 
 
-async def get_all_data():
+async def get_all_data(type):
     try:
-        with open("cogs/data/music.pickle", 'rb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
+        with open(f"cogs/data/music_{type}.pickle", 'rb') as f:
             return pickle.load(f)
-    except FileNotFoundError:
-        return {}
-    except EOFError:
+    except:
         return {}
 
-async def add_data(guild_id, channel_id, message_id):
-    data = await get_all_data()
+
+async def add_channel(guild_id, channel_id, message_id):
+    data = await get_all_data('channel')
     data[guild_id] = {"channel_id": channel_id, "message_id": message_id}
-    with open('cogs/data/music.pickle', 'wb') as f: # 로컬에서 실행시킬때는 project 폴더부터 경로 작성
+    with open('cogs/data/music_channel.pickle', 'wb') as f:
         pickle.dump(data, f)
 
-async def get_data(guild_id):
-    data = await get_all_data()
+async def add_log(guild_id, title, uri, requester, date):
+    data = await get_all_data('log')
+    dic = {'title': title, 'uri': uri, 'requester': requester, 'date': date}
+    try:
+        data[guild_id].append(dic)
+    except KeyError:
+        data[guild_id] = [dic]
+    with open('cogs/data/music_log.pickle', 'wb') as f: 
+        pickle.dump(data, f)    
+    
+async def get_data(guild_id, type):
+    data = await get_all_data(type)
     return data[guild_id]
 
 async def idlePlayerEmbed():
@@ -203,7 +214,7 @@ class Music(commands.Cog):
         # These are commands that require the bot to join a voicechannel (i.e. initiating playback).
         # Commands such as volume/skip etc don't require the bot to be in a voicechannel so don't need listing here.
         should_connect = ctx.command.name in ('play', '재생', 'list', '플레이리스트', 'search', '검색') #봇을 들어오게 하는 커맨드인듯 ? 
-        normal_command = ctx.command.name in ('setting', 'updateview') # 봇 클라이언트와 관련 없는 커맨드 (임의로 만듦)
+        normal_command = ctx.command.name in ('setting', 'log', '기록', 'updateview') # 봇 클라이언트와 관련 없는 커맨드 (임의로 만듦)
 
         if not ctx.author.voice or not ctx.author.voice.channel:
             # Our cog_command_error handler catches this and sends it to the voicechannel.
@@ -224,7 +235,7 @@ class Music(commands.Cog):
             if not permissions.connect or not permissions.speak:  # Check user limit too?
                 raise commands.CommandInvokeError('`연결` `말하기` 권한이 필요합니다') # I need the `CONNECT` and `SPEAK` permissions.
             try:
-                data = await get_data(ctx.guild.id)
+                data = await get_data(ctx.guild.id, 'channel')
             except KeyError:
                 raise commands.CommandInvokeError('노래 채널이 없습니다.\n`/setting` 커맨드로 채널을 만들어주세요')
             player.store('channel_id', data["channel_id"])
@@ -246,7 +257,7 @@ class Music(commands.Cog):
 
         v_client = message.guild.voice_client
         if not v_client: # 보이스 클라이언트가 없고
-            data = await get_data(message.guild.id)
+            data = await get_data(message.guild.id, 'channel')
             player.store('channel_id', data["channel_id"])
             player.store('message_id', data["message_id"])
             player.store('page', 1)
@@ -273,6 +284,7 @@ class Music(commands.Cog):
 
         elif isinstance(event, lavalink.events.TrackStartEvent):
             player = event.player
+            await add_log(player.guild_id, player.current.title, player.current.uri, self.bot.get_guild(player.guild_id).get_member(player.current.requester).display_name, datetime.now().strftime("%m/%d %H:%M"))
             duration_min = int(player.current.duration//60000)
             duration_sec = int(player.current.duration/1000%60)
             playerembed = discord.Embed(color=0xf5a9a9)
@@ -308,7 +320,7 @@ class Music(commands.Cog):
         listembed = await idleListEmbed()
         playerembed = await idlePlayerEmbed()
         message = await channel.send(embeds=[listembed, playerembed], view=MyView())
-        await add_data(ctx.guild.id, channel.id, message.id)
+        await add_channel(ctx.guild.id, channel.id, message.id)
         await ctx.respond('노래 채널 추가 완료 \n채널 알림은 꺼놓는 것을 추천합니다')
 
 
@@ -671,11 +683,26 @@ class Music(commands.Cog):
             await interaction.response.edit_message(delete_after=0)
 
         select.callback = callback
-   
 
         view=discord.ui.View()
         view.add_item(select)
         await ctx.respond('```플레이리스트는 자동으로 셔플됩니다.\n원하는 플레이리스트가 있으면 혁수s연구실 채널에 남겨주세요```', view=view)
+
+
+    @slash_command(name='기록', description="노래 재생 기록")
+    async def log_(self, ctx, limit: Option(int, "표시할 노래 개수", default=10)):
+        await self.log(ctx, limit)
+
+    @slash_command(name="log", description="노래 재생 기록")
+    async def log(self, ctx, limit: Option(int, "표시할 노래 개수", default=10)):
+        data = await get_data(ctx.guild.id, 'log')
+        embed = discord.Embed(color=0xf5a9a9)
+        embed.title = "📜 Music History"
+        embed.description = ''
+        for index, log in enumerate(data[:-limit-1:-1], start=1):
+            embed.description += f'**{index}**. [{log["title"]}]({log["uri"]}) {log["requester"]} {log["date"]}\n'
+        embed.set_footer(text="기록은 최근 10개만 출력됩니다. 더 많은 기록은 /기록 명령어를 사용해주세요.")
+        await ctx.respond(embed=embed, delete_after=10)
 
 
     @slash_command(description="disconnect")
@@ -698,7 +725,7 @@ class Music(commands.Cog):
     @slash_command(name="updateview", description="노래 채널 View 수정")
     async def updateview(self, ctx):
         if await self.bot.is_owner(ctx.user):
-            with open('cogs/data/music.pickle', 'rb') as f:
+            with open('cogs/data/music_channel.pickle', 'rb') as f:
                 dict = pickle.load(f)
             for i in dict.values():
                 try:
@@ -976,6 +1003,18 @@ class MyView(View):
         player.store('page', 1)
 
         ytmusic.delete_playlist(playlistId)
+
+
+    @discord.ui.button(label="로그", emoji="📜", style=discord.ButtonStyle.secondary, custom_id="persistent_view:log")
+    async def log(self, button:discord.ui.Button, interaction: discord.Interaction):
+        data = await get_data(interaction.guild.id, 'log')
+        embed = discord.Embed(color=0xf5a9a9)
+        embed.title = "📜 Music History"
+        embed.description = ''
+        for index, log in enumerate(data[:-11:-1], start=1):
+            embed.description += f'**{index}**. [{log["title"]}]({log["uri"]}) {log["requester"]} {log["date"]}\n'
+        embed.set_footer(text="기록은 최근 10개만 출력됩니다. 더 많은 기록은 /기록 명령어를 사용해주세요.")
+        await interaction.response.send_message(embed=embed, delete_after=10)
 
 
 def setup(bot):
