@@ -2,8 +2,9 @@ import discord
 from discord.ext import commands
 from discord.commands import slash_command, Option
 from datetime import datetime
-from pytz import timezone
 from neispy import Neispy
+from bs4 import BeautifulSoup
+import requests
 import os
 import sys
 from dotenv import load_dotenv
@@ -17,7 +18,7 @@ class Lunch(commands.Cog):
 
     @slash_command(name="급식", description="급식")
     async def lunch(self, ctx, school: Option(str, "학교 이름 입력")):
-        today = str(datetime.now())[:10].replace('-', '')
+        today = datetime.now().strftime("%Y%m%d")
         neis_key = os.getenv("neis_api_key")
 
         async with Neispy(KEY=neis_key) as neis:
@@ -48,6 +49,30 @@ class Lunch(commands.Cog):
                 embed.add_field(name="​", value=f"{lunchlist}", inline=False)
                 embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/769489028357160990.png?v=1")
                 await ctx.respond(embed=embed)
+
+    
+    @slash_command(name="학식", description="학식")
+    async def lunch2(self, ctx):
+        url = 'https://www.smu.ac.kr/ko/life/restaurantView.do'
+        response = requests.get(url)
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        all_menu = soup.findAll('ul', {'class': 's-dot'})
+        del all_menu[0] # 쓸모 없는 값 삭제
+        # all_menu[n] 0~4: 월~금 자율학식, 5~9: 월~금 컵밥
+
+        weekday = datetime.now().weekday() # 0~4: 월~금
+        if weekday in range(5):
+            lunchlist = all_menu[weekday].text
+        else:
+            lunchlist = '오늘은 주말' #오류 방지용 문구
+
+        embed = discord.Embed(color=0xf5a9a9)
+        embed.title = f"상명대 {datetime.today().month}월 {datetime.today().day}일 학식"
+        embed.add_field(name="​", value=lunchlist)
+        embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/769489028357160990.png")
+        await ctx.respond(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Lunch(bot))
