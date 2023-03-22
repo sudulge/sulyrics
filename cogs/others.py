@@ -140,13 +140,13 @@ class Others(commands.Cog):
         Hembed.add_field(name="기타", value="`알람` `급식` `로또` `숫자야구` `야` `오늘의라인` `구글`", inline=False)
         await ctx.respond(embed=Hembed)
     
+
     @slash_command(name="guilds", description="들어가있는 채널 출력")
     async def guilds(self, ctx):
-        li = ""
+        print(len(self.bot.guilds))
         for guild in self.bot.guilds:
-            g = await self.bot.fetch_guild(guild.id)
-            li += f"{g}\n"
-        await ctx.respond(f"{len(self.bot.guilds)}\n{li}")
+            print(guild)
+
 
     @slash_command(name="nothing", description='nothing')
     async def nothing(self, ctx):
