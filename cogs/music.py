@@ -515,6 +515,7 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             embed.title = "플레이어 종료"
+            embed.description = f"<@{ctx.author.id}>"
             await ctx.voice_client.disconnect(force=True)
             return await ctx.respond(embed=embed, delete_after=1)
 
@@ -522,8 +523,9 @@ class Music(commands.Cog):
         await player.stop()
         await ctx.voice_client.disconnect(force=True)
         embed.title = "플레이어 종료"
+        embed.description = f"<@{ctx.author.id}>"
         await ctx.respond(embed=embed, delete_after=1)
-
+        
         msg = await ctx.fetch_message(player.fetch('message_id'))
         listembed = await idleListEmbed()
         playerembed = await idlePlayerEmbed()
@@ -836,14 +838,16 @@ class MyView(View):
 
         if not player or not player.is_playing:
             embed.title = "플레이어 종료"
+            embed.description = f"<@{interaction.user.id}>"
             await interaction.guild.voice_client.disconnect(force=True)
-            return await interaction.response.send_message(embed=embed, delete_after=1)
+            return await interaction.response.send_message(embed=embed, delete_after=5)
 
         player.queue.clear()
         await player.stop()
         await interaction.guild.voice_client.disconnect(force=True)
         embed.title = "플레이어 종료"
-        await interaction.response.send_message(embed=embed, delete_after=1)
+        embed.description = f"<@{interaction.user.id}>"
+        await interaction.response.send_message(embed=embed, delete_after=5)
 
         channel = await interaction.client.fetch_channel(player.fetch('channel_id'))
         msg = await channel.fetch_message(player.fetch('message_id'))
