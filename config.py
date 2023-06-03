@@ -5,4 +5,5 @@ EXTENSIONS = [
     'cogs.music',
     'cogs.numberbaseball',
     'cogs.others',
+    'cogs.tetrio'
 ]
