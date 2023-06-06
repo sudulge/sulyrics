@@ -32,7 +32,7 @@ async def set_alarm(interaction, name, ampm, hour, minute): #정수값으로 보
     user = await interaction.client.fetch_user(interaction.user.id)
     embed = discord.Embed(color=0xf5a9a9)
     embed.title = f"⏰ {name}"
-    embed.description = f"{ampm} {hour}시 {minute}분입니다! {random.choice(alarm_text)}"
+    embed.description = f"{ampm} {hour-12}시 {minute}분입니다! {random.choice(alarm_text)}"
     await user.send(embed=embed)
 
 
