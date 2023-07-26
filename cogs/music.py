@@ -169,7 +169,7 @@ class Music(commands.Cog):
         self.bot = bot
 
         if not hasattr(bot, 'lavalink'):  # This ensures the client isn't overwritten during cog reloads.
-            bot.lavalink = lavalink.Client(731538324170342461)
+            bot.lavalink = lavalink.Client(731538324170342461) # 731538324170342461, 1064868310396702912
             bot.lavalink.add_node('127.0.0.1', 2333, 'password', 'ko', 'default-node')  # Host, Port, Password, Region, Name
 
         lavalink.add_event_hook(self.track_hook)
@@ -410,13 +410,11 @@ class Music(commands.Cog):
         # We don't want to call .play() if the player is playing as that will effectively skip
         # the current track.
         if not player.is_playing:
-            await player.play()
-            if '?t=' in query:
-                try:
-                    startposition = int(query.split('?t=')[1])
-                    await player.seek(startposition * 1000)
-                except:
-                    pass
+            try:
+                startposition = int(query.split('?t=')[1])
+                await player.play(start_time=startposition * 1000)
+            except:
+                await player.play()
         else: # 플레이어가 재생중일 때 리스트 임베드 업데이트 . 
             listembed = discord.Embed(color=0xf5a9a9)
             listembed.title = '재생 목록'
