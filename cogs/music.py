@@ -411,6 +411,12 @@ class Music(commands.Cog):
         # the current track.
         if not player.is_playing:
             await player.play()
+            if '?t=' in query:
+                try:
+                    startposition = int(query.split('?t=')[1])
+                    await player.seek(startposition * 1000)
+                except:
+                    pass
         else: # 플레이어가 재생중일 때 리스트 임베드 업데이트 . 
             listembed = discord.Embed(color=0xf5a9a9)
             listembed.title = '재생 목록'
