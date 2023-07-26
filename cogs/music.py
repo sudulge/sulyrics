@@ -687,8 +687,8 @@ class Music(commands.Cog):
         select = discord.ui.Select(placeholder='플레이 리스트 선택', options=[discord.SelectOption(label=title) for title in playlist])
         async def callback(interaction):
             self.shuffle = True
-            await self.play(ctx, playlist[select.values[0]])
             await interaction.response.edit_message(delete_after=0)
+            await self.play(ctx, playlist[select.values[0]])
 
         select.callback = callback
 
