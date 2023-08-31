@@ -290,7 +290,7 @@ class Music(commands.Cog):
             playerembed = discord.Embed(color=0xf5a9a9)
             playerembed.title = '지금 재생 중'
             playerembed.description = f'[{player.current.title}]({player.current.uri})\n`[00:00/{duration_min:02d}:{duration_sec:02d}`\n\nRequested by: <@{player.current.requester}>'
-            playerembed.set_image(url=f'https://i.ytimg.com/vi/{player.current.identifier}/maxresdefault.jpg')
+            playerembed.set_image(url=f'https://i.ytimg.com/vi/{player.current.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
 
             listembed = discord.Embed(color=0xf5a9a9)
             listembed.title = '재생 목록'
@@ -386,14 +386,14 @@ class Music(commands.Cog):
 
             embed.title = '플레이리스트 추가'
             embed.description = f'[{results.playlist_info.name}]({query}) - {len(tracks)} tracks'
-            embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg')
+            embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
             await send(embed=embed, delete_after=1)            
 
         else:
             track = results.tracks[0]
             duration_min = int(track.duration//60000)
             duration_sec = int(track.duration/1000%60)
-            embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{track.identifier}/maxresdefault.jpg')
+            embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{track.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
 
             if not player.is_playing:
                 embed.title = '지금 재생 중'
@@ -644,7 +644,7 @@ class Music(commands.Cog):
 
         embed.title = '지금 재생 중'
         embed.description = f'[{player.current.title}]({player.current.uri}&t={now_min}m{now_sec}s)\n`[{now_min:02d}:{now_sec:02d}/{duration_min:02d}:{duration_sec:02d}`\n\nRequested by: <@{player.current.requester}>'
-        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{player.current.identifier}/mqdefault.jpg')
+        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{player.current.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
         await ctx.respond(embed=embed, delete_after=5)
 
 
@@ -995,7 +995,7 @@ class MyView(View):
         
         embed.title = '플레이리스트 추가'
         embed.description = f'[{results.playlist_info.name}]({url}) - {len(tracks)} tracks'
-        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg')
+        embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
         await interaction.channel.send(embed=embed, delete_after=1)            
 
         listembed = discord.Embed(color=0xf5a9a9)
