@@ -169,7 +169,7 @@ class Music(commands.Cog):
         self.bot = bot
 
         if not hasattr(bot, 'lavalink'):  # This ensures the client isn't overwritten during cog reloads.
-            bot.lavalink = lavalink.Client(731538324170342461) # 731538324170342461, 1064868310396702912
+            bot.lavalink = lavalink.Client(1064868310396702912) # 731538324170342461, 1064868310396702912
             bot.lavalink.add_node('127.0.0.1', 2333, 'password', 'ko', 'default-node')  # Host, Port, Password, Region, Name
 
         lavalink.add_event_hook(self.track_hook)
@@ -596,10 +596,16 @@ class Music(commands.Cog):
             embed.title = "재생 목록이 비어있습니다"
             return await ctx.respond(embed=embed, delete_after=1)
 
-        if index > len(player.queue) or index < 1:
+        if index == 0:
+            player.queue.clear()
+            await ctx.respond('`재생 목록을 비웠습니다`', delete_after=1)
+
+        elif index > len(player.queue) or index < 1:
             return await ctx.respond(f'1 부터 {len(player.queue)} 사이의 정수를 입력해주세요', delete_after=1)
-        removed = player.queue.pop(index - 1)
-        await ctx.respond(f'`제거:: {index}. {removed.title}`', delete_after=1)
+        
+        else:
+            removed = player.queue.pop(index - 1)
+            await ctx.respond(f'`제거:: {index}. {removed.title}`', delete_after=1)
 
         listembed = discord.Embed(color=0xf5a9a9)
         listembed.title = '재생 목록'
