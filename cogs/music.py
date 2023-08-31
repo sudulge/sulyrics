@@ -342,6 +342,13 @@ class Music(commands.Cog):
         # Remove leading and trailing <>. <> may be used to suppress embedding links in Discord.
         query = query.strip('<>')
 
+        # ;붙여서 재생목록 맨앞에 끼워넣기
+        if query.startswith(';'):
+            query = query.lstrip(';')
+            index = 0
+        else:
+            index = None
+
         # Check if the user input might be a URL. If it isn't, we can Lavalink do a YouTube search for it instead.
         # SoundCloud searching is possible by prefixing "scsearch:" instead.
         if url_rx.match(query):
@@ -404,7 +411,7 @@ class Music(commands.Cog):
                 embed.description = f'[{track.title}]({track.uri})\n`{duration_min:02d}:{duration_sec:02d}`\n\nRequested by <@{ctx.author.id}>'
                 await send(embed=embed, delete_after=1)
 
-            player.add(requester=ctx.author.id, track=track)
+            player.add(requester=ctx.author.id, track=track, index=index)
 
 
         # We don't want to call .play() if the player is playing as that will effectively skip
