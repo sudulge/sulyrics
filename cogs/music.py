@@ -167,9 +167,14 @@ async def idleListEmbed():
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        
+        if bot.__class__.__name__ == 'Sulyrics':
+            id = 731538324170342461
+        elif bot.__class__.__name__ == 'SulyricsTest':
+            id = 1064868310396702912
 
         if not hasattr(bot, 'lavalink'):  # This ensures the client isn't overwritten during cog reloads.
-            bot.lavalink = lavalink.Client(1064868310396702912) # 731538324170342461, 1064868310396702912
+            bot.lavalink = lavalink.Client(id)
             bot.lavalink.add_node('127.0.0.1', 2333, 'password', 'ko', 'default-node')  # Host, Port, Password, Region, Name
 
         lavalink.add_event_hook(self.track_hook)
