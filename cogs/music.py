@@ -989,7 +989,7 @@ class MyView(View):
 
         title = player.current.title
 
-        ytmusic = YTMusic('cogs/data/headers_auth.json')
+        ytmusic = YTMusic('cogs/data/browser.json')
         search_results = ytmusic.search(query=title)
         playlist = ytmusic.get_watch_playlist(videoId=search_results[0]['videoId'])['tracks']
 

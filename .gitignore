@@ -3,4 +3,4 @@ logs/
 cogs/__pycache__/
 .env
 *.pickle
-cogs/data/headers_auth.json
+cogs/data/browser.json
