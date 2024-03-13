@@ -177,13 +177,14 @@ class Music(commands.Cog):
             bot.lavalink = lavalink.Client(id)
             bot.lavalink.add_node('127.0.0.1', 2333, 'password', 'ko', 'default-node')  # Host, Port, Password, Region, Name
 
-        lavalink.add_event_hook(self.track_hook)
+        self.lavalink: lavalink.Clinet = bot.lavalink
+        self.lavalink.add_event_hooks(self)
 
         self.shuffle = False
 
     def cog_unload(self):
         """ Cog unload handler. This removes any event hooks that were registered. """
-        self.bot.lavalink._event_hooks.clear()
+        self.lavalink._event_hooks.clear()
 
     async def cog_before_invoke(self, ctx):
         """ Command before-invoke handler. """
