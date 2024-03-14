@@ -26,6 +26,8 @@ import math
 import random
 import discord
 import lavalink
+from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
+from lavalink.server import LoadType
 from discord.ext import commands
 from discord.commands import slash_command, Option
 from discord.ui import Select, Button, Modal, View, InputText
@@ -60,19 +62,21 @@ class LavalinkVoiceClient(discord.VoiceClient):
     def __init__(self, client: discord.Client, channel: discord.abc.Connectable):
         self.client = client
         self.channel = channel
+        self.guild_id = channel.guild.id
+        self._destrooyed = False
+
         # ensure a client already exists
-        if hasattr(self.client, 'lavalink'):
-            self.lavalink = self.client.lavalink
-        else:
+        if not hasattr(self.client, 'lavalink'):
             self.client.lavalink = lavalink.Client(client.user.id)
             self.client.lavalink.add_node(
-                'localhost',
-                2333,
-                'password',
-                'ko',
-                'default-node'
+                host='localhost',
+                port=2333,
+                password='password',
+                region='ko',
+                name='default-node'
             )
-            self.lavalink = self.client.lavalink
+
+        self.lavalink = self.client.lavalink
 
     async def on_voice_server_update(self, data):
         # the data needs to be transformed before being handed down to
@@ -84,6 +88,14 @@ class LavalinkVoiceClient(discord.VoiceClient):
         await self.lavalink.voice_update_handler(lavalink_data)
 
     async def on_voice_state_update(self, data):
+        channel_id = data['channel_id']
+
+        if not channel_id:
+            await self._destroy()
+            return
+        
+        self.channel = self.client.get_channel(int(channel_id))
+
         # the data needs to be transformed before being handed down to
         # voice_update_handler
         lavalink_data = {
@@ -119,7 +131,20 @@ class LavalinkVoiceClient(discord.VoiceClient):
         # this must be done because the on_voice_state_update that would set channel_id
         # to None doesn't get dispatched after the disconnect
         player.channel_id = None
+        await self._destroy()
+
+    async def _destroy(self):
         self.cleanup()
+
+        if self._destrooyed:
+            return
+        
+        self._destrooyed = True
+
+        try:
+            await self.lavalink.player_manager.destroy(self.guild_id)
+        except lavalink.errors.ClientError:
+            pass
 
 
 async def get_all_data(type):
@@ -128,7 +153,6 @@ async def get_all_data(type):
             return pickle.load(f)
     except:
         return {}
-
 
 async def add_channel(guild_id, channel_id, message_id):
     data = await get_all_data('channel')
@@ -177,26 +201,31 @@ class Music(commands.Cog):
             bot.lavalink = lavalink.Client(id)
             bot.lavalink.add_node('127.0.0.1', 2333, 'password', 'ko', 'default-node')  # Host, Port, Password, Region, Name
 
-        self.lavalink: lavalink.Clinet = bot.lavalink
+        self.lavalink: lavalink.Client = bot.lavalink
         self.lavalink.add_event_hooks(self)
 
         self.shuffle = False
 
     def cog_unload(self):
-        """ Cog unload handler. This removes any event hooks that were registered. """
+        """
+        This will remove any registered event hooks when the cog is unloaded.
+        They will subsequently be registered again once the cog is loaded.
+
+        This effectively allows for event handlers to be updated when the cog is reloaded.
+        """
         self.lavalink._event_hooks.clear()
 
-    async def cog_before_invoke(self, ctx):
-        """ Command before-invoke handler. """
-        guild_check = ctx.guild is not None
-        #  This is essentially the same as `@commands.guild_only()`
-        #  except it saves us repeating ourselves (and also a few lines).
+    # async def cog_before_invoke(self, ctx):
+    #     """ Command before-invoke handler. """
+    #     guild_check = ctx.guild is not None
+    #     #  This is essentially the same as `@commands.guild_only()`
+    #     #  except it saves us repeating ourselves (and also a few lines).
 
-        if guild_check:
-            await self.ensure_voice(ctx)
-            #  Ensure that the bot and command author share a mutual voicechannel.
+    #     if guild_check:
+    #         await self.ensure_voice(ctx)
+    #         #  Ensure that the bot and command author share a mutual voicechannel.
 
-        return guild_check
+    #     return guild_check
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandInvokeError):
@@ -207,10 +236,18 @@ class Music(commands.Cog):
             # This shouldn't be a problem as the only errors thrown in this cog are from `ensure_voice`
             # which contain a reason string, such as "Join a voicechannel" etc. You can modify the above
             # if you want to do things differently.
+        
+    async def create_player(ctx: commands.Context):
+        """
+        A check that is invoked before any commands marked with `@commands.check(create_player)` can run.
 
-    async def ensure_voice(self, ctx):
-        """ This check ensures that the bot and command author are in the same voicechannel. """
-        player = self.bot.lavalink.player_manager.create(ctx.guild.id)
+        This function will try to create a player for the guild associated with this Context, or raise
+        an error which will be relayed to the user if one cannot be created.
+        """
+        if ctx.guild is None:
+            raise commands.NoPrivateMessage()
+
+        player = ctx.bot.lavalink.player_manager.create(ctx.guild.id)
         # Create returns a player if one exists, otherwise creates.
         # This line is important because it ensures that a player always exists for a guild.
 
@@ -222,24 +259,37 @@ class Music(commands.Cog):
         should_connect = ctx.command.name in ('play', '재생', 'list', '플레이리스트', 'search', '검색') #봇을 들어오게 하는 커맨드인듯 ? 
         normal_command = ctx.command.name in ('setting', 'log', '기록', 'updateview') # 봇 클라이언트와 관련 없는 커맨드 (임의로 만듦)
 
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            # Our cog_command_error handler catches this and sends it to the voicechannel.
-            # Exceptions allow us to "short-circuit" command invocation via checks so the
-            # execution state of the command goes no further.
-            raise commands.CommandInvokeError('먼저 음성채널에 입장해주세요') # Join a voicechannel first.
+        voice_client = ctx.voice_client
 
-        v_client = ctx.voice_client
-        if not v_client: # 보이스 클라이언트가 없고
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            # Check if we're in a voice channel. If we are, tell the user to join our voice channel.
+            if voice_client is not None:
+                raise commands.CommandInvokeError('수리릭과 같은 음성채널에 있어야합니다')
+
+            # Otherwise, tell them to join any voice channel to begin playing music.
+            raise commands.CommandInvokeError('먼저 음성채널에 입장해주세요')
+
+        voice_channel = ctx.author.voice.channel
+
+        if voice_client is None: # 보이스 클라이언트가 없고
             if not should_connect: # 봇을 들어오게 하는 커맨드가 아니라면
                 if not normal_command: # 봇 클라이언트와 관련이 있는 커맨드라면
-                    raise commands.CommandInvokeError('봇이 연결되어있지 않습니다') # Not connected.
-                else: #봇 클라이언트와 관련이 없는 커맨드라면 -> 경고 띄우지 않고 커맨드 실행
+                    raise commands.CommandInvokeError("봇이 연결되어있지 않습니다") # Not connencted
+                else: # 봇 클라이언트와 관련이 없는 커맨드라면 -> 경고 띄우지 않고 커맨드 실행
                     return
 
-            permissions = ctx.author.voice.channel.permissions_for(ctx.me)
+            permissions = voice_channel.permissions_for(ctx.me)
 
-            if not permissions.connect or not permissions.speak:  # Check user limit too?
-                raise commands.CommandInvokeError('`연결` `말하기` 권한이 필요합니다') # I need the `CONNECT` and `SPEAK` permissions.
+            if not permissions.connect or not permissions.speak:
+                raise commands.CommandInvokeError('`연결` `말하기` 권한이 필요합니다')
+            
+            # 인원 제한 상관없이 무조건 들어가게 함.
+            # if voice_channel.user_limit > 0:
+            #     # A limit of 0 means no limit. Anything higher means that there is a member limit which we need to check.
+            #     # If it's full, and we don't have "move members" permissions, then we cannot join it.
+            #     if len(voice_channel.members) >= voice_channel.user_limit and not ctx.me.guild_permissions.move_members:
+            #         raise commands.CommandInvokeError('Your voice channel is full!')
+
             try:
                 data = await get_data(ctx.guild.id, 'channel')
             except KeyError:
@@ -247,11 +297,14 @@ class Music(commands.Cog):
             player.store('channel_id', data["channel_id"])
             player.store('message_id', data["message_id"])
             player.store('page', 1)
-            await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
-        else:
-            if v_client.channel.id != ctx.author.voice.channel.id:
-                raise commands.CommandInvokeError('봇과 같은 음성채널에 있어야 합니다') # You need to be in my voicechannel.
 
+            player.store('channel', ctx.channel.id)
+            await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
+            
+        elif voice_client.channel.id != voice_channel.id:
+            raise commands.CommandInvokeError('수리릭과 같은 음성채널에 있어야합니다')
+
+        return True
 
     async def ensure_voice_chat(self, message):
         """ This check ensures that the bot and command author are in the same voicechannel. """
@@ -273,51 +326,58 @@ class Music(commands.Cog):
                 await message.channel.send('봇과 같은 음성채널에 있어야 합니다', delete_after=1)
                 raise commands.CommandInvokeError('봇과 같은 음성채널에 있어야 합니다')
 
-    async def track_hook(self, event):
-        if isinstance(event, lavalink.events.QueueEndEvent):
-            # When this track_hook receives a "QueueEndEvent" from lavalink.py
-            # it indicates that there are no tracks left in the player's queue.
-            # To save on resources, we can tell the bot to disconnect from the voicechannel.
-            guild_id = event.player.guild_id
-            guild = self.bot.get_guild(guild_id)
+    @lavalink.listener(TrackStartEvent)
+    async def on_tarck_start(self, event: TrackStartEvent):
+        guild_id = event.player.guild_id
+        channel_id = event.player.fetch('channel')
+        guild = self.bot.get_guild(guild_id)
+
+        if not guild:
+            return await self.lavalink.player_manager.destroy(guild_id)
+
+        player = event.player
+        await add_log(player.guild_id, player.current.title, player.current.uri, self.bot.get_guild(player.guild_id).get_member(player.current.requester).display_name, datetime.now().strftime("%m/%d %H:%M"))
+        duration_min = int(player.current.duration//60000)
+        duration_sec = int(player.current.duration/1000%60)
+        playerembed = discord.Embed(color=0xf5a9a9)
+        playerembed.title = '지금 재생 중'
+        playerembed.description = f'[{player.current.title}]({player.current.uri})\n`[00:00/{duration_min:02d}:{duration_sec:02d}`\n\nRequested by: <@{player.current.requester}>'
+        playerembed.set_image(url=f'https://i.ytimg.com/vi/{player.current.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
+
+        listembed = discord.Embed(color=0xf5a9a9)
+        listembed.title = '재생 목록'
+        if not player.queue:
+            listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n**텅텅.**'
+        else:
+            page = 1
+            tracks_per_page = 5
+            pages = math.ceil(len(player.queue) / tracks_per_page) # queue 올림해서 페이지 수 계산
+            start = (page - 1) * tracks_per_page
+            end = start + tracks_per_page
+            queue_list = ''
+            for index, track in enumerate(player.queue[start:end], start=start+1):
+                queue_list += f'**{index}**. [{track.title}]({track.uri})\n'
+            listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
+            listembed.set_footer(text=f"{page}/{pages} page")
+
+        channel = await self.bot.fetch_channel(player.fetch('channel_id'))
+        msg = await channel.fetch_message(player.fetch('message_id'))
+        await msg.edit(embeds=[listembed, playerembed])
+        player.store('page', 1)
+    
+    @lavalink.listener(QueueEndEvent)
+    async def on_queue_end(self, event: QueueEndEvent):
+        guild_id = event.player.guild_id
+        guild = self.bot.get_guild(guild_id)
+
+        if guild is not None:
             await guild.voice_client.disconnect(force=True)
 
-            channel = await self.bot.fetch_channel(event.player.fetch('channel_id'))
-            msg = await channel.fetch_message(event.player.fetch('message_id'))
-            listembed = await idleListEmbed()
-            playerembed = await idlePlayerEmbed()
-            await msg.edit(embeds=[listembed, playerembed])
-
-        elif isinstance(event, lavalink.events.TrackStartEvent):
-            player = event.player
-            await add_log(player.guild_id, player.current.title, player.current.uri, self.bot.get_guild(player.guild_id).get_member(player.current.requester).display_name, datetime.now().strftime("%m/%d %H:%M"))
-            duration_min = int(player.current.duration//60000)
-            duration_sec = int(player.current.duration/1000%60)
-            playerembed = discord.Embed(color=0xf5a9a9)
-            playerembed.title = '지금 재생 중'
-            playerembed.description = f'[{player.current.title}]({player.current.uri})\n`[00:00/{duration_min:02d}:{duration_sec:02d}`\n\nRequested by: <@{player.current.requester}>'
-            playerembed.set_image(url=f'https://i.ytimg.com/vi/{player.current.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
-
-            listembed = discord.Embed(color=0xf5a9a9)
-            listembed.title = '재생 목록'
-            if not player.queue:
-                listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n**텅텅.**'
-            else:
-                page = 1
-                tracks_per_page = 5
-                pages = math.ceil(len(player.queue) / tracks_per_page) # queue 올림해서 페이지 수 계산
-                start = (page - 1) * tracks_per_page
-                end = start + tracks_per_page
-                queue_list = ''
-                for index, track in enumerate(player.queue[start:end], start=start+1):
-                    queue_list += f'**{index}**. [{track.title}]({track.uri})\n'
-                listembed.description = f'**지금 재생 중**: [{player.current.title}]({player.current.uri})\n\n{queue_list}'
-                listembed.set_footer(text=f"{page}/{pages} page")
-
-            channel = await self.bot.fetch_channel(player.fetch('channel_id'))
-            msg = await channel.fetch_message(player.fetch('message_id'))
-            await msg.edit(embeds=[listembed, playerembed])
-            player.store('page', 1)
+        channel = await self.bot.fetch_channel(event.player.fetch('channel_id'))
+        msg = await channel.fetch_message(event.player.fetch('message_id'))
+        listembed = await idleListEmbed()
+        playerembed = await idlePlayerEmbed()
+        await msg.edit(embeds=[listembed, playerembed])
 
 
     @slash_command(name='setting', description="create music channel")
@@ -331,11 +391,13 @@ class Music(commands.Cog):
 
 
     @slash_command(name='재생', description="play")
-    async def play_(self, ctx, query: Option(str, '노래 제목, 유튜브/스포티파이 링크')):
+    @commands.check(create_player)
+    async def play_(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         await self.play(ctx, query)
 
     @slash_command(name='play', description="play")
-    async def play(self, ctx, query: Option(str, '노래 제목, 유튜브/스포티파이 링크')):
+    @commands.check(create_player)
+    async def play(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         if isinstance(ctx, discord.Message): # on_message 에서 호출 됐을 경우. 
             send = ctx.channel.send
             await self.ensure_voice_chat(ctx)
@@ -368,20 +430,18 @@ class Music(commands.Cog):
         # Get the results for the query from Lavalink.
         results = await player.node.get_tracks(query)
 
-        # Results could be None if Lavalink returns an invalid response (non-JSON/non-200 (OK)).
-        # ALternatively, resullts.tracks could be an empty array if the query yielded no tracks.
-        if not results or not results.tracks:
-            return await send('결과를 찾을 수 없습니다.', delete_after=1)
-
         embed = discord.Embed(color=0xf5a9a9)
 
-        # Valid loadTypes are:
-        #   TRACK_LOADED    - single video/direct URL)
-        #   PLAYLIST_LOADED - direct URL to playlist)
-        #   SEARCH_RESULT   - query prefixed with either ytsearch: or scsearch:.
-        #   NO_MATCHES      - query yielded no results
-        #   LOAD_FAILED     - most likely, the video encountered an exception during loading.
-        if results.load_type == 'PLAYLIST_LOADED':
+        # Valid load_types are:
+        #   TRACK    - direct URL to a track
+        #   PLAYLIST - direct URL to playlist
+        #   SEARCH   - query prefixed with either "ytsearch:" or "scsearch:". This could possibly be expanded with plugins.
+        #   EMPTY    - no results for the query (result.tracks will be empty)
+        #   ERROR    - the track encountered an exception during loading
+        if results.load_type == LoadType.EMPTY:
+            return await send('결과를 찾을 수 없습니다.', delete_after=1)
+        
+        elif results.load_type == LoadType.PLAYLIST:
             tracks = results.tracks
             first = tracks[0]
 
@@ -393,14 +453,14 @@ class Music(commands.Cog):
             else:
                 pass
 
+            # Add all of the tracks from the playlist to the queue.
             for track in tracks:
-                # Add all of the tracks from the playlist to the queue.
-                player.add(requester=ctx.author.id, track=track)
+                player.add(track=track, requester=ctx.author.id)
 
             embed.title = '플레이리스트 추가'
             embed.description = f'[{results.playlist_info.name}]({query}) - {len(tracks)} tracks'
             embed.set_thumbnail(url=f'https://i.ytimg.com/vi/{first.identifier}/maxresdefault.jpg?' + str(random.randint(1, 999999)))
-            await send(embed=embed, delete_after=1)            
+            await send(embed=embed, delete_after=1)
 
         else:
             track = results.tracks[0]
@@ -417,17 +477,17 @@ class Music(commands.Cog):
                 embed.description = f'[{track.title}]({track.uri})\n`{duration_min:02d}:{duration_sec:02d}`\n\nRequested by <@{ctx.author.id}>'
                 await send(embed=embed, delete_after=1)
 
-            player.add(requester=ctx.author.id, track=track, index=index)
-
+            player.add(track=track, index=index, requester=ctx.author.id)
 
         # We don't want to call .play() if the player is playing as that will effectively skip
         # the current track.
         if not player.is_playing:
-            try:
+            if len(query.split('?t=')) > 1:
                 startposition = int(query.split('?t=')[1])
-                await player.play(start_time=startposition * 1000)
-            except:
-                await player.play()
+            else:
+                startposition = 0
+            await player.play(start_time=startposition * 1000)
+
         else: # 플레이어가 재생중일 때 리스트 임베드 업데이트 . 
             listembed = discord.Embed(color=0xf5a9a9)
             listembed.title = '재생 목록'
@@ -451,11 +511,13 @@ class Music(commands.Cog):
 
 
     @slash_command(name='검색', description="search")
-    async def search_(self, ctx, query: Option(str, '검색')):
+    @commands.check(create_player)
+    async def search_(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         await self.search(ctx, query)
     
     @slash_command(name='search', description="search")
-    async def search(self, ctx, query: Option(str, '노래 제목, 유튜브/스포티파이 링크')):
+    @commands.check(create_player)
+    async def search(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         query = query.strip('<>')
 
@@ -550,11 +612,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='탐색', description="seek")
-    async def seek_(self, ctx, seconds: Option(int, "+/- 초 (정수)")):
+    async def seek_(self, ctx, seconds=Option(int, "+/- 초 (정수)")):
         await self.seek(ctx, seconds)
 
     @slash_command(name='seek', description="seek")
-    async def seek(self, ctx, seconds: Option(int, "+/- 초 (정수)")):
+    async def seek(self, ctx, seconds=Option(int, "+/- 초 (정수)")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         embed = discord.Embed(color=0xf5a9a9)
 
@@ -597,11 +659,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='제거', description="remove")
-    async def remove_(self, ctx, index: Option(int, "노래 번호 index")):
+    async def remove_(self, ctx, index=Option(int, "노래 번호 index")):
         await self.remove(ctx, index)
 
     @slash_command(name='remove', description="remove")
-    async def remove(self, ctx, index: Option(int, "노래 번호 index")):
+    async def remove(self, ctx, index=Option(int, "노래 번호 index")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.queue:
@@ -662,11 +724,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='큐', description="queue")
-    async def queue_(self, ctx, page: Option(int, "페이지 번호 index", default=1)):
+    async def queue_(self, ctx, page=Option(int, "페이지 번호 index", default=1)):
         await self.queue(ctx, page)
 
     @slash_command(name='queue', description="queue")
-    async def queue(self, ctx, page: Option(int, "페이지 번호 index", default=1)):
+    async def queue(self, ctx, page=Option(int, "페이지 번호 index", default=1)):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         embed = discord.Embed(color=0xf5a9a9)
 
@@ -696,10 +758,12 @@ class Music(commands.Cog):
 
 
     @slash_command(name="플레이리스트", description="플레이리스트")
+    @commands.check(create_player)
     async def playlist_(self, ctx):
         await self.playlist(ctx)
 
     @slash_command(name="list", description="플레이리스트")
+    @commands.check(create_player)
     async def playlist(self, ctx):
         select = discord.ui.Select(placeholder='플레이 리스트 선택', options=[discord.SelectOption(label=title) for title in playlist])
         async def callback(interaction):
@@ -715,11 +779,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='기록', description="노래 재생 기록")
-    async def log_(self, ctx, limit: Option(int, "표시할 노래 개수", default=10)):
+    async def log_(self, ctx, limit=Option(int, "표시할 노래 개수", default=10)):
         await self.log(ctx, limit)
 
     @slash_command(name="log", description="노래 재생 기록")
-    async def log(self, ctx, limit: Option(int, "표시할 노래 개수", default=10)):
+    async def log(self, ctx, limit=Option(int, "표시할 노래 개수", default=10)):
         data = await get_data(ctx.guild.id, 'log')
         embed = discord.Embed(color=0xf5a9a9)
         embed.title = "📜 Music History"
@@ -915,6 +979,7 @@ class MyView(View):
         embed.title = ('이전 페이지')
         await interaction.response.send_message(embed=embed, delete_after=0)
 
+
     @discord.ui.button(label="다음 페이지", style=discord.ButtonStyle.secondary, custom_id="persistent_view:next_page")
     async def next(self, button:discord.ui.Button, interaction: discord.Interaction):
         await self.ensure_voice_chat(interaction)
@@ -1004,7 +1069,7 @@ class MyView(View):
         first = tracks[0]
 
         for track in tracks:
-            player.add(requester=interaction.user.id, track=track)
+            player.add(track=track, requester=interaction.user.id)
         
         embed.title = '플레이리스트 추가'
         embed.description = f'[{results.playlist_info.name}]({url}) - {len(tracks)} tracks'
