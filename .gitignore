@@ -3,4 +3,5 @@ logs/
 cogs/__pycache__/
 .env
 *.pickle
+*.db
 cogs/data/browser.json
