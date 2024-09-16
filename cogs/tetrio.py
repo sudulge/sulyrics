@@ -40,25 +40,25 @@ class Tetrio(commands.Cog):
 
     
     @slash_command(name="테트리오", description="테트리오 유저 정보 검색")
-    async def tetrio_user(self, ctx, name: Option(str, "닉네임 입력")):
-        url = f"https://ch.tetr.io/api/users/{name}"
+    async def tetrio_user(self, ctx):
+        url = f"https://ch.tetr.io/api/users/sudulge/summaries/league"
         response = requests.get(url=url)
         contents = json.loads(response.content)
-        user = contents['data']['user']
-        league = user['league']
+        league = contents['data']
 
         embed = discord.Embed(color=0xf5a9a9)
-        embed.title = user['username'].upper()
-        embed.url = f"https://ch.tetr.io/u/{user['username']}"
+        embed.title = "SUDULGE"
+        embed.url = f"https://ch.tetr.io/u/sudulge"
         embed.add_field(name='APM', value=league['apm'])
         embed.add_field(name='PPS', value=league['pps'])
         embed.add_field(name='VS', value=league['vs'])
         embed.add_field(name='RANK', value=league['rank'].upper())
-        embed.add_field(name='TR', value=round(league['rating']))
+        embed.add_field(name='BESTRANK', value=league['bestrank'].upper())
+        embed.add_field(name='TR', value=round(league['tr']))
         embed.add_field(name='GLICKO', value=f"{round(league['glicko'])}±{round(league['rd'])}")
         embed.add_field(name='GAMES WON', value=f"{league['gameswon']}/{league['gamesplayed']} ({(league['gameswon']/league['gamesplayed'])*100:.2f}%)")
         embed.add_field(name='POSITION', value=f"{league['standing']}/{league['standing_local']}")
-        embed.set_thumbnail(url=f"https://tetr.io/user-content/avatars/{user['_id']}.jpg?rv={user['avatar_revision']}" if 'avatar_revision' in user else '')
+        embed.set_thumbnail(url=f"https://tetr.io/user-content/avatars/6281d29568c51e069ee5ff18.jpg")
         
         await ctx.respond(embed=embed)
 
