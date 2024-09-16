@@ -2,10 +2,7 @@ import discord
 from discord.ext import commands
 from discord.commands import slash_command, Option
 import random
-import pickle
-import sys
 import re
-import os
 
 
 num_rx = re.compile('^[0-9]{4}$')
@@ -52,7 +49,6 @@ def hit(input, ctx):
 
     if strike == 4:
         result = f"홈런! {len(tried_number)}회 만에 맞추셨습니다"
-        solecheck(ctx)
         end()
     elif strike == 0 and ball == 0:
         result = "아웃"
@@ -64,48 +60,6 @@ def hit(input, ctx):
     return result
 
 
-def solecheck(ctx):  # 마지막으로 입력한 사람이 혼자 했는지 체크 
-    author = ctx.author.display_name
-    if log_message.count(author) == len(tried_number) - 1: # 로그 메시지가 추가되기 전에 실행되기때문에 - 1
-        addhistory(ctx)
-    return
-
-
-def addhistory(ctx):
-    with open("cogs/data/NBhistory.pickle", "rb") as f: 
-        history = pickle.load(f)
-
-    for dic in history: # 있던 사람
-        if ctx.author.id in dic.values():
-            if len(tried_number) in dic['로그']:
-                dic['로그'][len(tried_number)] += 1
-            else:
-                dic['로그'][len(tried_number)] = 1
-            dic['로그'] = dict(sorted(dic['로그'].items()))
-            with open("cogs/data/NBhistory.pickle", "wb") as f:
-                pickle.dump(history, f)
-            return
-
-    history.append({"id": ctx.author.id, "이름": ctx.author.name, "서버닉네임": ctx.author.display_name, "로그": {len(tried_number): 1}}) # 새로운 사람
-    with open("cogs/data/NBhistory.pickle", "wb") as f:
-        pickle.dump(history, f)
-    return
-
-
-def showhistory(ctx):
-    with open("cogs/data/NBhistory.pickle", "rb") as f:
-        history = pickle.load(f)
-    
-    for dic in history:
-        if ctx.author.id in dic.values():
-            history = ''
-            for key, value in dic['로그'].items():
-                history += (f"{key}회:".ljust(4) + f" {value:2d}번\n")
-            return history
-
-    return False
-
-
 def end():
     global HRnumber # tried_number, log_message 는 홈런메시지에 출력해줘야해서 지우면 안됨.
     del HRnumber
@@ -115,21 +69,11 @@ class NBbaseball(commands.Cog):
         self.bot = bot
 
     @slash_command(name="숫자야구", description="숫자야구")
-    async def numBaseball(self, ctx, choice: Option(str, "숫자야구", choices=["시작", "기록", "도움말"])):
+    async def numBaseball(self, ctx, choice: Option(str, "숫자야구", choices=["시작", "도움말"])):
         if choice == "시작":
             start()
             print(HRnumber)
             await ctx.respond("`숫자를 초기화했습니다.\n/야 명령어를 통해 숫자를 입력해 주세요.`")
-        elif choice == "기록":
-            history = showhistory(ctx)
-            NBembed = discord.Embed(color=0xf5a9a9)
-            NBembed.title = f"{ctx.author.display_name}"
-            NBembed.description = "================================="
-            if history:
-                NBembed.add_field(name="기록", value=f"```{history}```")
-            else:
-                NBembed.add_field(name="기록", value=f"숫자야구 플레이 기록이 없습니다.")
-            await ctx.respond(embed=NBembed)
         elif choice == "도움말":
             NBembed = discord.Embed(color=0xf5a9a9)
             NBembed.title = "숫자야구"
