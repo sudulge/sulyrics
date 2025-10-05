@@ -37,7 +37,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from config import guild_ids
 
 cid = os.getenv("spotipy_client_id")
 secret = os.getenv("spotipy_client_secret")
@@ -323,11 +322,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='재생', description="play")
-    async def play_(self, ctx, query: Option(str, '노래 제목, 유튜브/스포티파이 링크')):
+    async def play_(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         await self.play(ctx, query)
 
     @slash_command(name='play', description="play")
-    async def play(self, ctx, query: Option(str, '노래 제목, 유튜브/스포티파이 링크')):
+    async def play(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         if isinstance(ctx, discord.Message): # on_message 에서 호출 됐을 경우. 
             send = ctx.channel.send
             await self.ensure_voice_chat(ctx)
@@ -425,11 +424,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='검색', description="search")
-    async def search_(self, ctx, query: Option(str, '검색')):
+    async def search_(self, ctx, query=Option(str, '검색')):
         await self.search(ctx, query)
     
     @slash_command(name='search', description="search")
-    async def search(self, ctx, query: Option(str, '노래 제목, 유튜브/스포티파이 링크')):
+    async def search(self, ctx, query=Option(str, '노래 제목, 유튜브/스포티파이 링크')):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         query = query.strip('<>')
 
@@ -521,11 +520,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='탐색', description="seek")
-    async def seek_(self, ctx, seconds: Option(int, "+/- 초 (정수)")):
+    async def seek_(self, ctx, seconds=Option(int, "+/- 초 (정수)")):
         await self.seek(ctx, seconds)
 
     @slash_command(name='seek', description="seek")
-    async def seek(self, ctx, seconds: Option(int, "+/- 초 (정수)")):
+    async def seek(self, ctx, seconds=Option(int, "+/- 초 (정수)")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         embed = discord.Embed(color=0xf5a9a9)
 
@@ -568,11 +567,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='제거', description="remove")
-    async def remove_(self, ctx, index: Option(int, "노래 번호 index")):
+    async def remove_(self, ctx, index=Option(int, "노래 번호 index")):
         await self.remove(ctx, index)
 
     @slash_command(name='remove', description="remove")
-    async def remove(self, ctx, index: Option(int, "노래 번호 index")):
+    async def remove(self, ctx, index=Option(int, "노래 번호 index")):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.queue:
@@ -627,11 +626,11 @@ class Music(commands.Cog):
 
 
     @slash_command(name='큐', description="queue")
-    async def queue_(self, ctx, page: Option(int, "페이지 번호 index", default=1)):
+    async def queue_(self, ctx, page=Option(int, "페이지 번호 index", default=1)):
         await self.queue(ctx, page)
 
     @slash_command(name='queue', description="queue")
-    async def queue(self, ctx, page: Option(int, "페이지 번호 index", default=1)):
+    async def queue(self, ctx, page=Option(int, "페이지 번호 index", default=1)):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         embed = discord.Embed(color=0xf5a9a9)
 
