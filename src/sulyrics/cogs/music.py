@@ -205,10 +205,14 @@ class Music(commands.Cog):
         if results.load_type == LoadType.EMPTY:
             return await send("결과를 찾을 수 없습니다.", delete_after=1)
 
-        else:
+        elif results.load_type == LoadType.PLAYLIST:
             for track in results.tracks:
                 track.extra["requester"] = ctx.author.id
                 player.add(track=track)
+        else:
+            track = results.tracks[0]
+            track.extra["requester"] = ctx.author.id
+            player.add(track=track)
 
         addTrackView = await self.viewmanager.addTrackView(results, query if results.load_type == LoadType.PLAYLIST else None)
 
