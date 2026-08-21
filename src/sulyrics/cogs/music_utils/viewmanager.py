@@ -177,5 +177,5 @@ class ViewManager:
         msg = await channel.fetch_message(data[0][1])
         view = self.get_musicview()
         view.rebuild_view(await self.idleListContainer(), await self.idlePlayerContainer())
-        await msg.edit(view=view)
+        await msg.edit(embed=None, view=view)
         await ctx.respond("view 업데이트 완료")
