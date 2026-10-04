@@ -28,6 +28,7 @@ from discord.ui import (
 )
 
 from lavalink import LoadType, LoadResult
+import emoji
 
 
 from .spotify import sulyrics_spotify
@@ -63,6 +64,12 @@ class MusicView(DesignerView):
         self.add_item(self.actionrow)
 
 
+def formatTrackMarkdown(title, url):
+    emojis = "".join(item["emoji"] for item in emoji.emoji_list(title))
+    text = emoji.replace_emoji(title, "")
+    return f"{emojis}[{text}]({url})"
+
+
 class ViewManager:
     def __init__(self, bot, pause_callback, skip_callback, loop_callback, stop_callback):
         self.bot = bot
@@ -96,11 +103,11 @@ class ViewManager:
 
     async def addTrackView(self, results: LoadResult, query=None):
         if results.load_type == LoadType.PLAYLIST:
-            section = Section(TextDisplay("### 플레이리스트 추가"), TextDisplay(f"### [{results.playlist_info.name}]({query}) - {len(results.tracks)} tracks"))
+            section = Section(TextDisplay("### 플레이리스트 추가"), TextDisplay(f"### {formatTrackMarkdown(results.playlist_info.name, query)} - {len(results.tracks)} tracks"))
         else:
             duration_min = int(results.tracks[0].duration//60000)
             duration_sec = int(results.tracks[0].duration/1000%60)
-            section = Section(TextDisplay("### 노래 추가"), TextDisplay(f"### [{results.tracks[0].title}]({results.tracks[0].uri})"), TextDisplay(f"`00:00 / {duration_min:02d}:{duration_sec:02d}`"))
+            section = Section(TextDisplay("### 노래 추가"), TextDisplay(f"### {formatTrackMarkdown(results.tracks[0].title, results.tracks[0].uri)}"), TextDisplay(f"`00:00 / {duration_min:02d}:{duration_sec:02d}`"))
 
         view = DesignerView(Container(section.set_thumbnail(f"https://i.ytimg.com/vi/{results.tracks[0].identifier}/maxresdefault.jpg?"), color=0xf5a9a9))
 
@@ -128,7 +135,7 @@ class ViewManager:
                 pass
 
         content = [
-            f"### [{player.current.title}]({player.current.uri})\n"
+            f"### {formatTrackMarkdown(player.current.title, player.current.uri)}\n"
             f"`[00:00/{duration_min:02d}:{duration_sec:02d}]`\n\n"
             f"Requested by: <@{player.current.requester}>"
         ]
@@ -142,7 +149,7 @@ class ViewManager:
         pages = ((len(player.queue)-1) // 5) + 1
         queue_list = ""
         for index, track in enumerate(player.queue[0:5]):
-            queue_list += f"**{index+1}**. [{track.title}]({track.uri})\n"
+            queue_list += f"**{index+1}**. {formatTrackMarkdown(track.title, track.uri)}\n"
         
         return await self.make_container("### 재생목록", [queue_list, f"-# 1/{pages} page"])
 
